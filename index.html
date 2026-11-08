@@ -1671,6 +1671,22 @@ function prosesSimpanKoreksi(nilaiId) {
         if (typeof renderRekapGuru === 'function') renderRekapGuru();
     }
 }
+             // ==========================================
+        // AUTO-LOAD DATA NILAI DARI LOCALSTORAGE
+        // ==========================================
+        function loadInitialState() {
+            const savedNilai = localStorage.getItem('app_nilai_list');
+            if (savedNilai) {
+                try {
+                    state.nilaiList = JSON.parse(savedNilai);
+                } catch (e) {
+                    console.error("Gagal memuat data nilai:", e);
+                }
+            }
+        }
+
+        // Jalankan otomatis saat halaman dimuat
+        loadInitialState();   
     </script>
 </body>
 </html>
