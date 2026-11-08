@@ -1490,6 +1490,25 @@
                 alert('Terjadi kesalahan saat menyimpan konfigurasi: ' + error.message);
             }
         }
+        // ==========================================
+        // TAMBAHKAN FUNGSI PEMUAT OTOMATIS INI DI BAWAHNYA
+        // ==========================================
+        function loadSavedFirebaseConfig() {
+            const savedConfig = localStorage.getItem('app_firebase_config');
+            if (savedConfig) {
+                const inputEl = document.getElementById('inputFirebaseConfig');
+                if (inputEl) inputEl.value = savedConfig;
+
+                const statusText = document.getElementById('firebaseStatusText');
+                if (statusText) {
+                    statusText.innerText = 'Status: Konfigurasi Tersimpan (Aktif)';
+                    statusText.className = 'text-xs font-medium text-emerald-600 font-bold';
+                }
+            }
+        }
+
+        // Jalankan otomatis saat halaman dimuat
+        loadSavedFirebaseConfig();
     </script>
 </body>
 </html>
