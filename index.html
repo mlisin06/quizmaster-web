@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aplikasi Ujian & Kuis Siswa Dynamic Pro</title>
 
-   <!-- ========================================== -->
+    <!-- ========================================== -->
     <!-- FAVICON & PRATINJAU WHATSAPP (OG IMAGE)    -->
     <!-- ========================================== -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/mlisin06/quizmaster-web/main/logo-ujian-dynamic-pro.jpg">
@@ -39,7 +39,7 @@
                 </div>
             </div>
             <div class="flex items-center space-x-3 mt-2 sm:mt-0">
-                <!-- Tombol Mode Demo Cepat untuk Pengunjung Blog -->
+                <!-- Tombol Mode Demo Cepat -->
                 <button onclick="triggerDemoMode()" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white transition shadow flex items-center gap-1.5">
                     <i class="fa-solid fa-wand-magic-sparkles"></i> Mode Demo Cepat
                 </button>
@@ -271,61 +271,84 @@
             </div>
         </section>
 
-        <!-- ================= PANEL SISWA ================= -->
+        <!-- ================= PANEL SISWA (NEW MODERN VIEW) ================= -->
         <section id="panelSiswa" class="space-y-6 hidden">
-            <!-- Form Login Siswa -->
-            <div id="siswaLoginCard" class="max-w-md mx-auto bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-5 mt-10">
-                <div class="text-center space-y-1">
-                    <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold"><i class="fa-solid fa-user-graduate"></i></div>
-                    <h2 class="font-bold text-xl text-slate-800">Portal Ujian Siswa</h2>
-                    <p class="text-xs text-slate-500">Pilih kelas dan nama Anda untuk masuk ke ruang ujian.</p>
+            
+            <!-- 1. Form Login Siswa (Desain Card Elegan dengan Gradien Lembut) -->
+            <div id="siswaLoginCard" class="max-w-md mx-auto bg-white rounded-3xl shadow-xl border border-indigo-100 overflow-hidden mt-8 transition-all">
+                <div class="bg-gradient-to-r from-indigo-600 to-violet-600 p-6 text-white text-center space-y-2">
+                    <div class="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto text-2xl font-bold shadow-inner">
+                        <i class="fa-solid fa-user-graduate"></i>
+                    </div>
+                    <h2 class="font-bold text-2xl">Portal Ujian Siswa</h2>
+                    <p class="text-xs text-indigo-100">Silakan pilih kelas dan nama lengkap Anda untuk memulai sesi ujian.</p>
                 </div>
-                <div class="space-y-4">
+                
+                <div class="p-6 sm:p-8 space-y-5">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Pilih Kelas</label>
-                        <select id="siswaLoginKelas" onchange="populateSiswaDropdown()" class="w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500"></select>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2"><i class="fa-solid fa-school text-indigo-600 mr-1.5"></i>Pilih Kelas</label>
+                        <select id="siswaLoginKelas" onchange="populateSiswaDropdown()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white transition"></select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Pilih Nama Siswa</label>
-                        <select id="siswaLoginNama" class="w-full border rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2"><i class="fa-solid fa-id-card text-indigo-600 mr-1.5"></i>Pilih Nama Siswa</label>
+                        <select id="siswaLoginNama" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
                             <option value="">-- Pilih Nama Anda --</option>
                         </select>
                     </div>
-                    <button onclick="loginSiswaProcess()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition shadow">Masuk ke Ruang Ujian</button>
+                    <button onclick="loginSiswaProcess()" class="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-semibold py-3.5 rounded-xl transition shadow-lg shadow-indigo-200 flex items-center justify-center gap-2">
+                        <span>Masuk ke Ruang Ujian</span>
+                        <i class="fa-solid fa-arrow-right-long"></i>
+                    </button>
                 </div>
             </div>
 
-            <!-- Dashboard Ujian Siswa -->
+            <!-- 2. Dashboard Ujian Siswa (Modern Grid Cards) -->
             <div id="siswaDashboard" class="space-y-6 hidden">
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-4">
-                    <div>
-                        <h2 class="font-bold text-slate-800 text-lg" id="salamSiswa">Halo, Siswa</h2>
-                        <p class="text-xs text-slate-500">Daftar kuis & ujian interaktif yang sedang diaktifkan oleh guru Anda.</p>
+                <!-- Banner Profil Siswa -->
+                <div class="bg-gradient-to-r from-indigo-900 to-indigo-800 text-white p-6 rounded-2xl shadow-md flex flex-wrap justify-between items-center gap-4">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center text-xl font-bold"><i class="fa-solid fa-user-check"></i></div>
+                        <div>
+                            <h2 class="font-bold text-lg" id="salamSiswa">Halo, Siswa</h2>
+                            <p class="text-xs text-indigo-200">Berikut adalah daftar kuis dan ujian yang sedang aktif dibuka oleh guru.</p>
+                        </div>
                     </div>
-                    <button onclick="logoutSiswa()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-2 rounded-lg font-medium transition"><i class="fa-solid fa-arrow-right-from-bracket mr-1"></i>Keluar</button>
+                    <button onclick="logoutSiswa()" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-xs font-medium transition backdrop-blur-sm border border-white/10">
+                        <i class="fa-solid fa-arrow-right-from-bracket mr-1.5"></i>Keluar Akun
+                    </button>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="listKuisSiswaContainer"></div>
+                <!-- Grid Daftar Kuis Aktif -->
+                <div>
+                    <h3 class="font-bold text-slate-700 text-base mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-clipboard-list text-indigo-600"></i> Daftar Ujian & Kuis Tersedia
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="listKuisSiswaContainer"></div>
+                </div>
             </div>
 
-            <!-- Workspace Pengerjaan Ujian Siswa -->
-            <div id="siswaWorkspace" class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-6 hidden">
-                <div class="flex justify-between items-center border-b pb-4">
+            <!-- 3. Workspace Pengerjaan Ujian Siswa (Desain Fokus & Bersih) -->
+            <div id="siswaWorkspace" class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 sm:p-8 space-y-6 hidden max-w-4xl mx-auto">
+                <div class="flex flex-wrap justify-between items-center border-b border-slate-100 pb-5 gap-4">
                     <div>
-                        <span class="text-xs font-semibold px-2.5 py-1 bg-indigo-100 text-indigo-700 rounded-full" id="wsJenisKuis">Pilihan Ganda</span>
-                        <h3 class="font-bold text-slate-800 text-lg mt-1" id="wsJudulKuis">Bab 1 - Evaluasi</h3>
+                        <span class="text-xs font-bold px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full uppercase tracking-wider" id="wsJenisKuis">Pilihan Ganda</span>
+                        <h3 class="font-bold text-slate-800 text-xl mt-2" id="wsJudulKuis">Bab 1 - Evaluasi</h3>
                     </div>
-                    <div class="text-right">
-                        <div class="text-xs text-slate-500">Sisa Waktu</div>
-                        <div class="font-mono font-bold text-rose-600 text-lg" id="wsTimer">--:--</div>
+                    <div class="bg-rose-50 border border-rose-100 px-4 py-2 rounded-2xl text-right">
+                        <div class="text-[10px] font-bold text-rose-500 uppercase tracking-wider">Sisa Waktu Ujian</div>
+                        <div class="font-mono font-extrabold text-rose-600 text-xl" id="wsTimer">--:--</div>
                     </div>
                 </div>
 
-                <div id="wsContentArea" class="space-y-4"></div>
+                <div id="wsContentArea" class="space-y-6"></div>
 
-                <div class="flex justify-between pt-4 border-t">
-                    <button onclick="tutupWorkspace()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition">Batal & Kembali</button>
-                    <button onclick="submitKuisSiswa()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition shadow">Kirim Jawaban Ujian</button>
+                <div class="flex justify-between pt-5 border-t border-slate-100">
+                    <button onclick="tutupWorkspace()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl text-sm font-semibold transition">
+                        <i class="fa-solid fa-xmark mr-1.5"></i>Batal & Kembali
+                    </button>
+                    <button onclick="submitKuisSiswa()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-7 py-2.5 rounded-xl text-sm font-semibold transition shadow-lg shadow-emerald-200 flex items-center gap-2">
+                        <i class="fa-solid fa-paper-plane"></i> Kirim Jawaban Ujian
+                    </button>
                 </div>
             </div>
         </section>
@@ -468,6 +491,12 @@
             setupFilterListeners();
             renderGuru();
             updatePendingBadge();
+            
+            // Cek parameter URL untuk mode demo otomatis (jika dibuka dari iframe blog)
+            const urlParams = new URLSearchParams(window.location.search);
+            if(urlParams.get('demo') === 'true') {
+                triggerDemoMode();
+            }
         });
 
         function saveToStorage() {
@@ -488,23 +517,18 @@
             }
         }
 
-        // FUNGSI MODE DEMO INSTAN UNTUK PENGUNJUNG BLOG
         function triggerDemoMode() {
-            // Pastikan ada contoh soal & status aktif pada filter pertama agar langsung bisa dicoba siswa
             const defaultKey = '2025/2026_Ganjil_Kelas 1_Bab 1 - Pengantar_Pilihan Ganda';
             state.settingsList[defaultKey] = { aktif: true, durasi: 15 };
             saveToStorage();
             
-            // Pindah otomatis ke panel siswa dan pilih siswa demo pertama
             switchRole('siswa');
             setTimeout(() => {
                 const selectNama = document.getElementById('siswaLoginNama');
                 if(selectNama && selectNama.options.length > 1) {
-                    selectNama.selectedIndex = 1; // Pilih siswa demo pertama
+                    selectNama.selectedIndex = 1;
                 }
             }, 100);
-
-            alert('✨ Mode Demo Diaktifkan!\nAnda sekarang masuk ke Simulasi Portal Siswa. Silakan klik tombol "Masuk ke Ruang Ujian" untuk mencoba kuis secara langsung.');
         }
 
         function renderMasterDropdowns() {
@@ -987,22 +1011,36 @@
                     if(kelas === state.currentSiswa.kelas) {
                         count++;
                         container.innerHTML += `
-                            <div class="bg-white p-5 rounded-xl shadow-sm border border-indigo-100 flex flex-col justify-between space-y-4">
+                            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition flex flex-col justify-between space-y-4">
                                 <div>
-                                    <span class="text-xs font-bold text-indigo-600 uppercase font-mono">${jenis}</span>
-                                    <h3 class="font-bold text-slate-800 text-base mt-1">${bab}</h3>
-                                    <p class="text-xs text-slate-500 mt-0.5">Tahun Pelajaran: ${tp} (${sem}) | Durasi: ${setting.durasi} Menit</p>
+                                    <span class="inline-block px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-lg uppercase tracking-wider mb-2 font-mono">${jenis}</span>
+                                    <h3 class="font-bold text-slate-800 text-lg leading-snug">${bab}</h3>
+                                    <p class="text-xs text-slate-500 mt-1 flex items-center gap-1.5"><i class="fa-regular fa-calendar text-slate-400"></i> TP: ${tp} (${sem})</p>
+                                    <p class="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5"><i class="fa-regular fa-clock text-slate-400"></i> Durasi: ${setting.durasi} Menit</p>
                                 </div>
-                                <div class="flex items-center justify-between pt-3 border-t">
-                                    <span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-bold">Siap Dikerjakan</span>
-                                    <button onclick="mulaiUjianSiswa('${tp}', '${sem}', '${kelas}', '${bab}', '${jenis}', ${setting.durasi})" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition shadow">Kerjakan</button>
+                                <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs rounded-full font-bold">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Siap Dikerjakan
+                                    </span>
+                                    <button onclick="mulaiUjianSiswa('${tp}', '${sem}', '${kelas}', '${bab}', '${jenis}', ${setting.durasi})" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition shadow-md shadow-indigo-100 flex items-center gap-2">
+                                        <span>Kerjakan</span>
+                                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                                    </button>
                                 </div>
                             </div>
                         `;
                     }
                 }
             });
-            if(count === 0) container.innerHTML = `<div class="col-span-full p-8 text-center text-slate-500 bg-white rounded-xl border">Belum ada kuis berstatus <b>AKTIF</b> yang dibuka oleh Guru untuk kelas Anda. (Gunakan tombol <b>Mode Demo Cepat</b> di atas untuk simulasi instan).</div>`;
+            if(count === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full p-10 text-center bg-white rounded-2xl border border-slate-200 space-y-3">
+                        <div class="w-12 h-12 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto text-xl"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <h4 class="font-bold text-slate-700">Belum Ada Kuis Aktif</h4>
+                        <p class="text-xs text-slate-500 max-w-sm mx-auto">Saat ini belum ada kuis berstatus aktif yang dibuka oleh Guru untuk kelas Anda. Silakan coba gunakan tombol <b>Mode Demo Cepat</b> di atas.</p>
+                    </div>
+                `;
+            }
         }
 
         function mulaiUjianSiswa(tp, sem, kelas, bab, jenis, durasiMenit) {
@@ -1016,37 +1054,54 @@
             contentArea.innerHTML = '';
 
             if(soalPilihan.length === 0) {
-                contentArea.innerHTML = `<div class="p-6 text-center text-slate-500 bg-slate-50 rounded-xl border">Maaf, belum ada soal untuk kuis ini.</div>`;
+                contentArea.innerHTML = `<div class="p-8 text-center text-slate-500 bg-slate-50 rounded-2xl border">Maaf, belum ada soal untuk kuis ini.</div>`;
                 return;
             }
 
             soalPilihan.forEach((s, idx) => {
                 if(jenis === 'Pilihan Ganda') {
                     contentArea.innerHTML += `
-                        <div class="p-4 bg-slate-50 rounded-xl border space-y-2" data-soal-id="${s.id}" data-kunci="${s.kunci}" data-jenis="${jenis}">
-                            <div class="font-semibold text-slate-800 text-sm">Soal ${idx + 1} (Bobot: ${s.bobot}): ${s.tanya}</div>
-                            <div class="space-y-1 pl-2">
-                                <label class="block text-xs cursor-pointer"><input type="radio" name="jawaban_${s.id}" value="A" class="mr-2 siswa-ans"> A. ${s.opsi?.A || '-'}</label>
-                                <label class="block text-xs cursor-pointer"><input type="radio" name="jawaban_${s.id}" value="B" class="mr-2 siswa-ans"> B. ${s.opsi?.B || '-'}</label>
-                                <label class="block text-xs cursor-pointer"><input type="radio" name="jawaban_${s.id}" value="C" class="mr-2 siswa-ans"> C. ${s.opsi?.C || '-'}</label>
-                                <label class="block text-xs cursor-pointer"><input type="radio" name="jawaban_${s.id}" value="D" class="mr-2 siswa-ans"> D. ${s.opsi?.D || '-'}</label>
+                        <div class="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3" data-soal-id="${s.id}" data-kunci="${s.kunci}" data-jenis="${jenis}">
+                            <div class="font-semibold text-slate-800 text-sm flex items-start gap-2">
+                                <span class="bg-indigo-600 text-white px-2 py-0.5 rounded-lg text-xs font-mono">${idx + 1}</span>
+                                <div class="flex-grow">${s.tanya} <span class="text-xs text-indigo-600 font-normal ml-1">(${s.bobot} Poin)</span></div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pl-7">
+                                <label class="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-indigo-300 transition text-sm">
+                                    <input type="radio" name="jawaban_${s.id}" value="A" class="text-indigo-600 focus:ring-indigo-500 siswa-ans"> <span class="font-bold text-slate-600">A.</span> ${s.opsi?.A || '-'}
+                                </label>
+                                <label class="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-indigo-300 transition text-sm">
+                                    <input type="radio" name="jawaban_${s.id}" value="B" class="text-indigo-600 focus:ring-indigo-500 siswa-ans"> <span class="font-bold text-slate-600">B.</span> ${s.opsi?.B || '-'}
+                                </label>
+                                <label class="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-indigo-300 transition text-sm">
+                                    <input type="radio" name="jawaban_${s.id}" value="C" class="text-indigo-600 focus:ring-indigo-500 siswa-ans"> <span class="font-bold text-slate-600">C.</span> ${s.opsi?.C || '-'}
+                                </label>
+                                <label class="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-indigo-300 transition text-sm">
+                                    <input type="radio" name="jawaban_${s.id}" value="D" class="text-indigo-600 focus:ring-indigo-500 siswa-ans"> <span class="font-bold text-slate-600">D.</span> ${s.opsi?.D || '-'}
+                                </label>
                             </div>
                         </div>
                     `;
                 } else if(jenis === 'Anagram') {
                     let scrambled = s.kunci.split('').sort(() => Math.random() - 0.5).join(' - ');
                     contentArea.innerHTML += `
-                        <div class="p-4 bg-slate-50 rounded-xl border space-y-2" data-soal-id="${s.id}" data-kunci="${s.kunci}" data-jenis="${jenis}">
-                            <div class="font-semibold text-slate-800 text-sm">Soal ${idx + 1} (Bobot: ${s.bobot}): ${s.tanya}</div>
-                            <div class="p-2 bg-amber-50 text-amber-800 font-mono font-bold text-center tracking-widest">${scrambled}</div>
-                            <input type="text" id="ans_${s.id}" class="w-full border rounded p-2 text-sm uppercase font-mono siswa-ans" placeholder="Ketik susunan kata benar...">
+                        <div class="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3" data-soal-id="${s.id}" data-kunci="${s.kunci}" data-jenis="${jenis}">
+                            <div class="font-semibold text-slate-800 text-sm flex items-start gap-2">
+                                <span class="bg-indigo-600 text-white px-2 py-0.5 rounded-lg text-xs font-mono">${idx + 1}</span>
+                                <div class="flex-grow">${s.tanya} <span class="text-xs text-indigo-600 font-normal ml-1">(${s.bobot} Poin)</span></div>
+                            </div>
+                            <div class="p-4 bg-amber-50 border border-amber-200 text-amber-900 font-mono font-bold text-center tracking-widest text-lg rounded-xl">${scrambled}</div>
+                            <input type="text" id="ans_${s.id}" class="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm uppercase font-mono siswa-ans focus:ring-2 focus:ring-indigo-500" placeholder="Ketik susunan kata benar...">
                         </div>
                     `;
                 } else {
                     contentArea.innerHTML += `
-                        <div class="p-4 bg-slate-50 rounded-xl border space-y-2" data-soal-id="${s.id}" data-kunci="${s.kunci}" data-jenis="${jenis}">
-                            <div class="font-semibold text-slate-800 text-sm">Soal ${idx + 1} (Bobot: ${s.bobot}): ${s.tanya}</div>
-                            <textarea id="ans_${s.id}" rows="3" class="w-full border rounded p-2 text-sm siswa-ans" placeholder="Tulis jawaban atau rangkuman Anda..."></textarea>
+                        <div class="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3" data-soal-id="${s.id}" data-kunci="${s.kunci}" data-jenis="${jenis}">
+                            <div class="font-semibold text-slate-800 text-sm flex items-start gap-2">
+                                <span class="bg-indigo-600 text-white px-2 py-0.5 rounded-lg text-xs font-mono">${idx + 1}</span>
+                                <div class="flex-grow">${s.tanya} <span class="text-xs text-indigo-600 font-normal ml-1">(${s.bobot} Poin)</span></div>
+                            </div>
+                            <textarea id="ans_${s.id}" rows="4" class="w-full bg-white border border-slate-200 rounded-xl p-3.5 text-sm siswa-ans focus:ring-2 focus:ring-indigo-500" placeholder="Tulis jawaban atau rangkuman Anda di sini..."></textarea>
                         </div>
                     `;
                 }
@@ -1128,7 +1183,7 @@
             state.nilaiList.push(entry);
             saveToStorage();
 
-            alert(adaEssay ? 'Ujian terkirim! Menunggu koreksi guru.' : `Ujian selesai! Nilai Anda: ${nilaiAkhir}`);
+            alert(adaEssay ? 'Ujian berhasil dikirim! Menunggu koreksi nilai dari guru.' : `Ujian selesai! Nilai Anda: ${nilaiAkhir}`);
             tutupWorkspace();
             renderSiswaDashboard();
         }
