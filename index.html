@@ -1496,6 +1496,7 @@
         // ==========================================
         // TAMBAHKAN FUNGSI PEMUAT OTOMATIS INI DI BAWAHNYA
         // ==========================================
+                // Fungsi Pemuat Otomatis Firebase
         function loadSavedFirebaseConfig() {
             const savedConfig = localStorage.getItem('app_firebase_config');
             if (savedConfig) {
@@ -1512,37 +1513,38 @@
 
         // Jalankan otomatis saat halaman dimuat
         loadSavedFirebaseConfig();
-        // Fungsi Memuat Antrean Koreksi Essay & Rangkuman
-function renderKoreksiGuru() {
-    const container = document.getElementById('tabelKoreksiContainer') || document.getElementById('tabKoreksi');
-    if(!container) return;
 
-    // Cari data nilai yang statusnya masih menunggu koreksi
-    const pendingList = state.nilaiList.filter(n => n.status === 'Menunggu Koreksi' || n.jenis === 'Essay' || n.jenis === 'Merangkum Materi');
+        // ==========================================
+        // FUNGSI KOREKSI ESSAY & RANGKUMAN
+        // ==========================================
+        function renderKoreksiGuru() {
+            const container = document.getElementById('tabelKoreksiContainer') || document.getElementById('tabKoreksi');
+            if(!container) return;
 
-    if(pendingList.length === 0) {
-        // Jika belum ada kontainer khusus tabel koreksi, kita buatkan tampilan sederhananya
-        return;
-    }
-}
+            // Cari data nilai yang statusnya masih menunggu koreksi
+            const pendingList = state.nilaiList.filter(n => n.status === 'Menunggu Koreksi' || n.jenis === 'Essay' || n.jenis === 'Merangkum Materi');
 
-// Fungsi Guru Menyimpan Hasil Koreksi Nilai Essay/Rangkuman
-function simpanKoreksiGuru(nilaiId, nilaiAngkaBaru) {
-    const targetNilai = state.nilaiList.find(n => n.id === nilaiId || n.siswaId === nilaiId);
-    if(targetNilai) {
-        targetNilai.nilai = Number(nilaiAngkaBaru);
-        targetNilai.status = 'Selesai';
-        
-        // Simpan pembaruan ke localStorage
-        localStorage.setItem('app_nilai_list', JSON.stringify(state.nilaiList));
-        
-        // Perbarui tampilan rekap dan koreksi
-        if(typeof renderRekapGuru === 'function') renderRekapGuru();
-        alert('Nilai koreksi berhasil disimpan dan dimasukkan ke rekap!');
-    } else {
-        alert('Data nilai siswa tidak ditemukan.');
-    }
-}
+            if(pendingList.length === 0) {
+                return;
+            }
+        }
+
+        function simpanKoreksiGuru(nilaiId, nilaiAngkaBaru) {
+            const targetNilai = state.nilaiList.find(n => n.id === nilaiId || n.siswaId === nilaiId);
+            if(targetNilai) {
+                targetNilai.nilai = Number(nilaiAngkaBaru);
+                targetNilai.status = 'Selesai';
+                
+                // Simpan pembaruan ke localStorage
+                localStorage.setItem('app_nilai_list', JSON.stringify(state.nilaiList));
+                
+                // Perbarui tampilan rekap dan koreksi
+                if(typeof renderRekapGuru === 'function') renderRekapGuru();
+                alert('Nilai koreksi berhasil disimpan dan dimasukkan ke rekap!');
+            } else {
+                alert('Data nilai siswa tidak ditemukan.');
+            }
+        }
     </script>
 </body>
 </html>
