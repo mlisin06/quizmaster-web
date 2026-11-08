@@ -789,8 +789,7 @@
             updatePendingBadge();
         }
 
-       
-function renderRekapGuru() {
+     function renderRekapGuru() {
     const tbody = document.getElementById('tabelRekapBody');
     if(!tbody) return;
     tbody.innerHTML = '';
@@ -804,16 +803,18 @@ function renderRekapGuru() {
     }
 
     filteredSiswa.forEach((siswa, idx) => {
-        const getNilaiByType = (jenis) => {
-            // Pencocokan fleksibel: mencocokkan ID ATAU NISN siswa
-            const found = state.nilaiList.find(n => (n.siswaId === siswa.id || n.siswaId === siswa.nisn) && n.jenis === jenis);
+        // Cari semua nilai yang dimiliki siswa ini (berdasarkan id atau nisn)
+        const nilaiSiswa = state.nilaiList.filter(n => n.siswaId === siswa.id || n.siswaId === siswa.nisn || n.nisn == siswa.nisn);
+
+        const getNilaiByType = (keyword) => {
+            const found = nilaiSiswa.find(n => n.jenis && n.jenis.toLowerCase().includes(keyword.toLowerCase()));
             return found ? (found.status === 'Menunggu Koreksi' ? 'Pending' : found.nilai) : '-';
         };
 
         const nPg = getNilaiByType('Pilihan Ganda');
         const nAn = getNilaiByType('Anagram');
-        const nCard = getNilaiByType('Card Matching');
-        const nSum = getNilaiByType('Merangkum Materi');
+        const nCard = getNilaiByType('Card');
+        const nSum = getNilaiByType('Rangkum');
         const nEssay = getNilaiByType('Essay');
 
         const angkaList = [nPg, nAn, nCard, nSum, nEssay].filter(v => typeof v === 'number');
@@ -838,6 +839,7 @@ function renderRekapGuru() {
         `;
     });
 }
+  
 
         // FUNGSI EKSPOR CSV PROFESIONAL (POIN 4)
         function exportRekapCSV() {
