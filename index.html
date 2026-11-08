@@ -994,12 +994,40 @@
             reader.readAsText(file);
         }
 
+        // ========================================== //
+        // PENGGANTI FUNGSI CSV LAMA (DINAMIS KUIS)     //
+        // ========================================== //
+
         function downloadSoalTemplate() {
-            const csv = "Pertanyaan,Bobot\nBerapakah hasil 2+2?,10";
+            const jenis = document.getElementById('filterJenis').value;
+            let csvContent = "data:text/csv;charset=utf-8,";
+            let filename = "template_soal_" + jenis.toLowerCase().replace(/\s+/g, '_') + ".csv";
+
+            if (jenis === 'Pilihan Ganda') {
+                csvContent += "Pertanyaan,OpsiA,OpsiB,OpsiC,OpsiD,Kunci,Bobot\n";
+                csvContent += "Berapakah hasil dari 2 + 2?,3,4,5,6,B,10\n";
+                csvContent += "Ibukota negara Indonesia adalah?,Bandung,Jakarta,Surabaya,Medan,B,10";
+            } else if (jenis === 'Anagram') {
+                csvContent += "Pertanyaan,KunciKata,Bobot\n";
+                csvContent += "Susun huruf acak berikut menjadi perangkat keras komputer:,KOMPUTER,20\n";
+                csvContent += "Susun huruf acak berikut menjadi bahasa pemrograman:,PYTHON,20";
+            } else if (jenis === 'Card Matching') {
+                csvContent += "Pertanyaan,Pasangan,Bobot\n";
+                csvContent += "RAM,Memori Utama,15\n";
+                csvContent += "CPU,Processor,15";
+            } else {
+                csvContent += "Pertanyaan,Bobot\n";
+                csvContent += "Jelaskan secara singkat proses terjadinya siklus air!,20\n";
+                csvContent += "Buatlah rangkuman mengenai dampak positif teknologi terhadap pendidikan!,20";
+            }
+
+            const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
-            link.href = encodeURI("data:text/csv;charset=utf-8," + csv);
-            link.download = "template_soal.csv";
+            link.href = encodedUri;
+            link.download = filename;
+            document.body.appendChild(link);
             link.click();
+            document.body.removeChild(link);
         }
 
         function uploadSoalCSV(e) {
@@ -1013,20 +1041,53 @@
                 const kelas = document.getElementById('filterKelas').value;
                 const bab = document.getElementById('filterBab').value;
                 const jenis = document.getElementById('filterJenis').value;
+                
+                let successCount = 0;
+
                 for(let i=1; i<lines.length; i++) {
-                    const cols = lines[i].split(',');
-                    if(cols[0].trim()) {
-                        state.soalList.push({ id: 's_' + Date.now() + '_' + i, tp, sem, kelas, bab, jenis, tanya: cols[0].trim(), kunci: 'A', bobot: cols[1] ? parseFloat(cols[1]) : 10, opsi: {A:'A', B:'B', C:'C', D:'D'} });
+                    const line = lines[i].trim();
+                    if(!line) continue;
+                    const cols = line.split(',');
+
+                    if(jenis === 'Pilihan Ganda' && cols.length >= 7) {
+                        state.soalList.push({
+                            id: 's_' + Date.now() + '_' + i,
+                            tp, sem, kelas, bab, jenis,
+                            tanya: cols[0].trim(),
+                            opsi: { A: cols[1].trim(), B: cols[2].trim(), C: cols[3].trim(), D: cols[4].trim() },
+                            kunci: cols[5].trim().toUpperCase(),
+                            bobot: parseFloat(cols[6]) || 10
+                        });
+                        successCount++;
+                    } else if((jenis === 'Anagram' || jenis === 'Card Matching') && cols.length >= 3) {
+                        state.soalList.push({
+                            id: 's_' + Date.now() + '_' + i,
+                            tp, sem, kelas, bab, jenis,
+                            tanya: cols[0].trim(),
+                            opsi: {},
+                            kunci: cols[1].trim().toUpperCase(),
+                            bobot: parseFloat(cols[2]) || 10
+                        });
+                        successCount++;
+                    } else if((jenis === 'Essay' || jenis === 'Merangkum Materi') && cols.length >= 2) {
+                        state.soalList.push({
+                            id: 's_' + Date.now() + '_' + i,
+                            tp, sem, kelas, bab, jenis,
+                            tanya: cols[0].trim(),
+                            opsi: {},
+                            kunci: '-',
+                            bobot: parseFloat(cols[1]) || 20
+                        });
+                        successCount++;
                     }
                 }
                 saveToStorage();
                 renderGuru();
                 e.target.value = '';
-                alert('Impor soal berhasil!');
+                alert(`Berhasil mengimpor ${successCount} soal untuk jenis kuis: ${jenis}!`);
             };
             reader.readAsText(file);
         }
-
         function populateSiswaDropdown() {
             document.getElementById('siswaLoginKelas').innerHTML = state.master.kelas.map(k => `<option value="${k}">${k}</option>`).join('');
             const kelas = document.getElementById('siswaLoginKelas').value;
