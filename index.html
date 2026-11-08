@@ -1687,6 +1687,39 @@ function prosesSimpanKoreksi(nilaiId) {
 
         // Jalankan otomatis saat halaman dimuat
         loadInitialState();   
+        // ==========================================
+// FUNGSI UTAMA SISWA MENGIRIM TUGAS / ESSAY / RANGKUMAN
+// ==========================================
+function kirimTugasSiswa(siswaId, jenisTugas, teksJawaban) {
+    if (!teksJawaban || teksJawaban.trim() === "") {
+        alert("Jawaban tidak boleh kosong!");
+        return;
+    }
+
+    // Pastikan state nilaiList sudah dimuat dari localStorage
+    let saved = localStorage.getItem('app_nilai_list');
+    if (saved) {
+        state.nilaiList = JSON.parse(saved);
+    }
+
+    // Buat data nilai baru
+    const dataBaru = {
+        id: 'nilai_' + Date.now(),
+        siswaId: String(siswaId),
+        jenis: jenisTugas, // 'Essay' atau 'Merangkum Materi'
+        jawaban: teksJawaban,
+        nilai: 0,
+        status: 'Menunggu Koreksi',
+        timestamp: new Date().toISOString()
+    };
+
+    // Masukkan ke array dan simpan ke localStorage
+    state.nilaiList.push(dataBaru);
+    localStorage.setItem('app_nilai_list', JSON.stringify(state.nilaiList));
+
+    alert("Jawaban berhasil dikirim ke guru untuk dikoreksi!");
+}
+
     </script>
 </body>
 </html>
