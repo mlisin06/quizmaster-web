@@ -1469,6 +1469,27 @@
             document.getElementById('siswaDashboard').classList.remove('hidden');
             renderSiswaDashboard();
         }
+                function saveFirebaseConfig() {
+            const configText = document.getElementById('inputFirebaseConfig').value.trim();
+            if (!configText) {
+                alert('Silakan masukkan blok konfigurasi Firebase terlebih dahulu!');
+                return;
+            }
+
+            try {
+                localStorage.setItem('app_firebase_config', configText);
+                
+                const statusText = document.getElementById('firebaseStatusText');
+                if (statusText) {
+                    statusText.innerText = 'Status: Konfigurasi Tersimpan (Aktif)';
+                    statusText.className = 'text-xs font-medium text-emerald-600 font-bold';
+                }
+
+                alert('Konfigurasi Firebase berhasil disimpan!');
+            } catch (error) {
+                alert('Terjadi kesalahan saat menyimpan konfigurasi: ' + error.message);
+            }
+        }
     </script>
 </body>
 </html>
