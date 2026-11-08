@@ -789,53 +789,54 @@
             updatePendingBadge();
         }
 
-        function renderRekapGuru() {
-            const tbody = document.getElementById('tabelRekapBody');
-            if(!tbody) return;
-            tbody.innerHTML = '';
+       function renderRekapGuru() {
+    const tbody = document.getElementById('tabelRekapBody');
+    if(!tbody) return;
+    tbody.innerHTML = '';
 
-            const kelasAktif = document.getElementById('filterKelas').value;
-            const filteredSiswa = state.siswaList.filter(s => s.kelas === kelasAktif);
+    const kelasAktif = document.getElementById('filterKelas').value;
+    const filteredSiswa = state.siswaList.filter(s => s.kelas === kelasAktif);
 
-            if(filteredSiswa.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-slate-400">Belum ada data siswa untuk kelas ini.</td></tr>`;
-                return;
-            }
+    if(filteredSiswa.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-slate-400">Belum ada data siswa untuk kelas ini.</td></tr>`;
+        return;
+    }
 
-            filteredSiswa.forEach((siswa, idx) => {
-                const getNilaiByType = (jenis) => {
-                    const found = state.nilaiList.find(n => n.siswaId === siswa.id && n.jenis === jenis);
-                    return found ? (found.status === 'Menunggu Koreksi' ? 'Pending' : found.nilai) : '-';
-                };
+    filteredSiswa.forEach((siswa, idx) => {
+        const getNilaiByType = (jenis) => {
+            // Pencocokan fleksibel berdasarkan siswaId ATAU nisn
+            const found = state.nilaiList.find(n => (n.siswaId === siswa.id || n.siswaId === siswa.nisn) && n.jenis === jenis);
+            return found ? (found.status === 'Menunggu Koreksi' ? 'Pending' : found.nilai) : '-';
+        };
 
-                const nPg = getNilaiByType('Pilihan Ganda');
-                const nAn = getNilaiByType('Anagram');
-                const nCard = getNilaiByType('Card Matching');
-                const nSum = getNilaiByType('Merangkum Materi');
-                const nEssay = getNilaiByType('Essay');
+        const nPg = getNilaiByType('Pilihan Ganda');
+        const nAn = getNilaiByType('Anagram');
+        const nCard = getNilaiByType('Card Matching');
+        const nSum = getNilaiByType('Merangkum Materi');
+        const nEssay = getNilaiByType('Essay');
 
-                const angkaList = [nPg, nAn, nCard, nSum, nEssay].filter(v => typeof v === 'number');
-                const avg = angkaList.length > 0 ? Math.round(angkaList.reduce((a, b) => a + b, 0) / angkaList.length) : '-';
+        const angkaList = [nPg, nAn, nCard, nSum, nEssay].filter(v => typeof v === 'number');
+        const avg = angkaList.length > 0 ? Math.round(angkaList.reduce((a, b) => a + b, 0) / angkaList.length) : '-';
 
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50">
-                        <td class="p-3 text-center">${idx + 1}</td>
-                        <td class="p-3 font-mono">${siswa.nisn}</td>
-                        <td class="p-3 font-medium text-slate-800">${siswa.nama}</td>
-                        <td class="p-3">${siswa.kelas}</td>
-                        <td class="p-3 text-center">${nPg}</td>
-                        <td class="p-3 text-center">${nAn}</td>
-                        <td class="p-3 text-center">${nCard}</td>
-                        <td class="p-3 text-center">${nSum}</td>
-                        <td class="p-3 text-center">${nEssay}</td>
-                        <td class="p-3 text-center font-bold text-indigo-700">${avg}</td>
-                        <td class="p-3 text-center">
-                            <button onclick="resetNilaiSiswa('${siswa.id}')" class="text-rose-600 text-xs px-2 py-1 bg-rose-50 rounded"><i class="fa-solid fa-rotate-left"></i> Reset</button>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
+        tbody.innerHTML += `
+            <tr class="hover:bg-slate-50">
+                <td class="p-3 text-center">${idx + 1}</td>
+                <td class="p-3 font-mono">${siswa.nisn}</td>
+                <td class="p-3 font-medium text-slate-800">${siswa.nama}</td>
+                <td class="p-3">${siswa.kelas}</td>
+                <td class="p-3 text-center">${nPg}</td>
+                <td class="p-3 text-center">${nAn}</td>
+                <td class="p-3 text-center">${nCard}</td>
+                <td class="p-3 text-center">${nSum}</td>
+                <td class="p-3 text-center">${nEssay}</td>
+                <td class="p-3 text-center font-bold text-indigo-700">${avg}</td>
+                <td class="p-3 text-center">
+                    <button onclick="resetNilaiSiswa('${siswa.id}')" class="text-rose-600 text-xs px-2 py-1 bg-rose-50 rounded"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+                </td>
+            </tr>
+        `;
+    });
+}
 
         // FUNGSI EKSPOR CSV PROFESIONAL (POIN 4)
         function exportRekapCSV() {
