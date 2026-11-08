@@ -1510,74 +1510,142 @@
                 }
             }
         }
-
-        // Jalankan otomatis saat halaman dimuat
-        loadSavedFirebaseConfig();
-
         // ==========================================
-        // FUNGSI KOREKSI ESSAY & RANGKUMAN
+        // 1. FIREBASE CONFIG SAVE & LOAD
         // ==========================================
-        function renderKoreksiGuru() {
-            const container = document.getElementById('tabelKoreksiContainer') || document.getElementById('tabKoreksi');
-            if(!container) return;
-
-            // Cari data nilai yang statusnya masih menunggu koreksi
-            const pendingList = state.nilaiList.filter(n => n.status === 'Menunggu Koreksi' || n.jenis === 'Essay' || n.jenis === 'Merangkum Materi');
-
-            if(pendingList.length === 0) {
+        function saveFirebaseConfig() {
+            const configText = document.getElementById('inputFirebaseConfig').value.trim();
+            if (!configText) {
+                alert('Silakan masukkan blok konfigurasi Firebase terlebih dahulu!');
                 return;
+            }
+
+            try {
+                localStorage.setItem('app_firebase_config', configText);
+                const statusText = document.getElementById('firebaseStatusText');
+                if (statusText) {
+                    statusText.innerText = 'Status: Konfigurasi Tersimpan (Aktif)';
+                    statusText.className = 'text-xs font-medium text-emerald-600 font-bold';
+                }
+                alert('Konfigurasi Firebase berhasil disimpan!');
+            } catch (error) {
+                alert('Terjadi kesalahan saat menyimpan konfigurasi: ' + error.message);
             }
         }
 
-        function simpanKoreksiGuru(nilaiId, nilaiAngkaBaru) {
-            const targetNilai = state.nilaiList.find(n => n.id === nilaiId || n.siswaId === nilaiId);
-            if(targetNilai) {
-                targetNilai.nilai = Number(nilaiAngkaBaru);
-                targetNilai.status = 'Selesai';
+        function loadSavedFirebaseConfig() {
+            const savedConfig = localStorage.getItem('app_firebase_config');
+            if (savedConfig) {
+                const inputEl = document.getElementById('inputFirebaseConfig');
+                if (inputEl) inputEl.value = savedConfig;
+
+                const statusText = document.getElementById('firebaseStatusText');
+                if (statusText) {
+                    statusText.innerText = 'Status: Konfigurasi Tersimpan (Aktif)';
+                    statusText.className = 'text-xs font-medium text-emerald-600 font-bold';
+                }
+            }
+        }
+        loadSavedFirebaseConfig();
+
+        // ==========================================
+        // 2. FUNGSI KOREKSI GURU (MENGGUNAKAN STATE UTAMA)
+        // ==========================================
+        function renderKoreksiGuru() {
+            const tbody = document.getElementById('tabelKoreksiBody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            
+            const pendingList = state.nilaiList.filter(n => n.status === 'Menunggu Koreksi');
+            
+            if(pendingList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">Tidak ada jawaban essay/rangkuman yang perlu dikoreksi.</td></tr>`;
+                return;
+            }
+
+            pendingList.forEach(n => {
+                const siswa = state.siswaList.find(s => s.id === n.siswaId) || { nama: 'Siswa' };
+                let teksJawaban = typeof n.jawaban === 'object' ? JSON.stringify(n.jawaban) : n.jawaban;
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 font-medium">${siswa.nama}</td>
+                        <td class="p-3 text-xs">${n.bab} (${n.jenis})</td>
+                        <td class="p-3 text-xs font-mono bg-slate-50 rounded max-w-xs truncate" title="${teksJawaban}">${teksJawaban}</td>
+                        <td class="p-3 text-center"><span class="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-full">Pending</span></td>
+                        <td class="p-3 text-center">
+                            <input type="number" id="input_nilai_${n.id}" min="0" max="100" placeholder="0-100" class="w-16 border rounded p-1 text-xs mr-2 text-center">
+                            <button onclick="simpanKoreksiGuru('${n.id}')" class="bg-indigo-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-indigo-700">Simpan</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            updatePendingBadge();
+        }
+
+        function simpanKoreksiGuru(nilaiId) {
+            const inputEl = document.getElementById(`input_nilai_${nilaiId}`);
+            if(!inputEl || inputEl.value === "") {
+                alert('Silakan masukkan angka nilai terlebih dahulu!');
+                return;
+            }
+
+            const val = parseInt(inputEl.value);
+            if(isNaN(val) || val < 0 || val > 100) { 
+                alert('Masukkan nilai valid antara 0 sampai 100!'); 
+                return; 
+            }
+
+            const entry = state.nilaiList.find(n => n.id === nilaiId);
+            if(entry) {
+                entry.nilai = val;
+                entry.status = 'Selesai';
                 
-                // Simpan pembaruan ke localStorage
-                localStorage.setItem('app_nilai_list', JSON.stringify(state.nilaiList));
+                // Menyimpan ke penyimpanan utama aplikasi
+                saveToStorage();
                 
-                // Perbarui tampilan rekap dan koreksi
+                renderKoreksiGuru();
+                updatePendingBadge();
                 if(typeof renderRekapGuru === 'function') renderRekapGuru();
-                alert('Nilai koreksi berhasil disimpan dan dimasukkan ke rekap!');
+                
+                alert('Nilai koreksi berhasil disimpan dan masuk ke Rekap!');
             } else {
                 alert('Data nilai siswa tidak ditemukan.');
             }
         }
+
         // ==========================================
-// FUNGSI SISWA MENGIRIM JAWABAN RANGKUMAN/ESSAY
-// ==========================================
-function submitTugasSiswa(siswaId, jenisTugas, teksJawaban) {
-    if (!teksJawaban || teksJawaban.trim() === "") {
-        alert("Jawaban tidak boleh kosong!");
-        return;
-    }
+        // 3. FUNGSI KIRIM TUGAS SISWA TERPADU
+        // ==========================================
+        function kirimTugasSiswa(siswaId, jenisTugas, teksJawaban, babMateri) {
+            if (!teksJawaban || teksJawaban.trim() === "") {
+                alert("Jawaban tidak boleh kosong!");
+                return;
+            }
 
-    // Buat objek data nilai baru dengan status menunggu koreksi
-    const dataBaru = {
-        id: 'nilai_' + Date.now(),
-        siswaId: siswaId,
-        jenis: jenisTugas, // Contoh: 'Merangkum Materi' atau 'Essay'
-        jawaban: teksJawaban,
-        nilai: 0,
-        status: 'Menunggu Koreksi',
-        timestamp: new Date().toISOString()
-    };
+            // Hapus duplikat nilai lama agar tidak menumpuk
+            state.nilaiList = state.nilaiList.filter(n => !(n.siswaId === siswaId && n.bab === babMateri && n.jenis === jenisTugas));
 
-    // Masukkan ke state nilai list
-    state.nilaiList.push(dataBaru);
+            const dataBaru = {
+                id: 'nilai_' + Date.now(),
+                siswaId: String(siswaId),
+                jenis: jenisTugas, 
+                bab: babMateri,
+                jawaban: teksJawaban,
+                nilai: 0,
+                status: 'Menunggu Koreksi',
+                timestamp: new Date().toISOString()
+            };
 
-    // Simpan ke localStorage agar permanen
-    localStorage.setItem('app_nilai_list', JSON.stringify(state.nilaiList));
+            state.nilaiList.push(dataBaru);
+            saveToStorage(); // Langsung simpan permanen ke storage aplikasi
 
-    alert("Tugas berhasil dikirim! Menunggu koreksi dari guru.");
+            alert("Tugas berhasil dikirim ke guru untuk dikoreksi!");
+            if(typeof renderSiswaDashboard === 'function') {
+                renderSiswaDashboard();
+            }
+        }
     
-    // Perbarui tampilan jika ada fungsi render di sisi siswa
-    if (typeof renderSiswaDashboard === 'function') {
-        renderSiswaDashboard();
-    }
-}
 // ==========================================
 // PERBARUI FUNGSI RENDER KOREKSI GURU DI SINI
 // ==========================================
