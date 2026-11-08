@@ -1545,6 +1545,132 @@
                 alert('Data nilai siswa tidak ditemukan.');
             }
         }
+        // ==========================================
+// FUNGSI SISWA MENGIRIM JAWABAN RANGKUMAN/ESSAY
+// ==========================================
+function submitTugasSiswa(siswaId, jenisTugas, teksJawaban) {
+    if (!teksJawaban || teksJawaban.trim() === "") {
+        alert("Jawaban tidak boleh kosong!");
+        return;
+    }
+
+    // Buat objek data nilai baru dengan status menunggu koreksi
+    const dataBaru = {
+        id: 'nilai_' + Date.now(),
+        siswaId: siswaId,
+        jenis: jenisTugas, // Contoh: 'Merangkum Materi' atau 'Essay'
+        jawaban: teksJawaban,
+        nilai: 0,
+        status: 'Menunggu Koreksi',
+        timestamp: new Date().toISOString()
+    };
+
+    // Masukkan ke state nilai list
+    state.nilaiList.push(dataBaru);
+
+    // Simpan ke localStorage agar permanen
+    localStorage.setItem('app_nilai_list', JSON.stringify(state.nilaiList));
+
+    alert("Tugas berhasil dikirim! Menunggu koreksi dari guru.");
+    
+    // Perbarui tampilan jika ada fungsi render di sisi siswa
+    if (typeof renderSiswaDashboard === 'function') {
+        renderSiswaDashboard();
+    }
+}
+// ==========================================
+// PERBARUI FUNGSI RENDER KOREKSI GURU DI SINI
+// ==========================================
+function renderKoreksiGuru() {
+    // Cari elemen kontainer tempat tabel koreksi ditampilkan
+    const tabKoreksi = document.getElementById('tabKoreksi') || document.getElementById('tabelKoreksiContainer');
+    if (!tabKoreksi) return;
+
+    // Filter data yang statusnya masih menunggu koreksi
+    const pendingList = state.nilaiList.filter(n => n.status === 'Menunggu Koreksi');
+
+    // Buat tampilan tabel koreksi secara otomatis jika belum ada di HTML
+    let htmlContent = `
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
+            <h3 class="font-bold text-slate-800 text-base">Daftar Antrean Koreksi Essay & Rangkuman</h3>
+    `;
+
+    if (pendingList.length === 0) {
+        htmlContent += `<p class="text-xs text-slate-400 py-4 text-center">Belum ada jawaban siswa yang menunggu koreksi.</p></div>`;
+    } else {
+        htmlContent += `
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-100 border-b text-slate-700">
+                            <th class="p-3">No</th>
+                            <th class="p-3">ID/NISN Siswa</th>
+                            <th class="p-3">Jenis Kuis</th>
+                            <th class="p-3">Jawaban Siswa</th>
+                            <th class="p-3 text-center">Beri Nilai (0-100)</th>
+                            <th class="p-3 text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+        `;
+
+        pendingList.forEach((item, idx) => {
+            const siswaInfo = state.siswaList.find(s => s.id === item.siswaId || s.nisn === item.siswaId) || { nama: item.siswaId };
+            htmlContent += `
+                <tr class="hover:bg-slate-50">
+                    <td class="p-3 text-center">${idx + 1}</td>
+                    <td class="p-3 font-medium text-slate-800">${siswaInfo.nama}</td>
+                    <td class="p-3">${item.jenis}</td>
+                    <td class="p-3 max-w-xs truncate" title="${item.jawaban}">${item.jawaban}</td>
+                    <td class="p-3 text-center">
+                        <input type="number" id="input_nilai_${item.id}" min="0" max="100" class="w-20 border rounded p-1 text-center text-xs" placeholder="Nilai">
+                    </td>
+                    <td class="p-3 text-center">
+                        <button onclick="prosesSimpanKoreksi('${item.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded text-xs font-medium">Simpan</button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        htmlContent += `</tbody></table></div></div>`;
+    }
+
+    // Masukkan ke dalam elemen tab koreksi
+    if (document.getElementById('tabKoreksi')) {
+        // Jika tabKoreksi berbentuk pembungkus, kita taruh di dalamnya
+        let innerDiv = document.getElementById('tabelKoreksiContainer');
+        if (!innerDiv) {
+            innerDiv = document.createElement('div');
+            innerDiv.id = 'tabelKoreksiContainer';
+            document.getElementById('tabKoreksi').appendChild(innerDiv);
+        }
+        innerDiv.innerHTML = htmlContent;
+    }
+}
+
+// Fungsi pendukung untuk tombol Simpan di tabel koreksi
+function prosesSimpanKoreksi(nilaiId) {
+    const inputEl = document.getElementById(`input_nilai_${nilaiId}`);
+    if (!inputEl || inputEl.value === "") {
+        alert("Silakan masukkan angka nilai terlebih dahulu!");
+        return;
+    }
+
+    const nilaiAngka = Number(inputEl.value);
+    const target = state.nilaiList.find(n => n.id === nilaiId);
+    
+    if (target) {
+        target.nilai = nilaiAngka;
+        target.status = 'Selesai';
+        
+        // Simpan ke localStorage
+        localStorage.setItem('app_nilai_list', JSON.stringify(state.nilaiList));
+        
+        alert("Nilai berhasil disimpan dan masuk ke Rekap!");
+        renderKoreksiGuru();
+        if (typeof renderRekapGuru === 'function') renderRekapGuru();
+    }
+}
     </script>
 </body>
 </html>
