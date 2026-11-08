@@ -789,7 +789,8 @@
             updatePendingBadge();
         }
 
-       function renderRekapGuru() {
+       
+function renderRekapGuru() {
     const tbody = document.getElementById('tabelRekapBody');
     if(!tbody) return;
     tbody.innerHTML = '';
@@ -804,7 +805,7 @@
 
     filteredSiswa.forEach((siswa, idx) => {
         const getNilaiByType = (jenis) => {
-            // Pencocokan fleksibel berdasarkan siswaId ATAU nisn
+            // Pencocokan fleksibel: mencocokkan ID ATAU NISN siswa
             const found = state.nilaiList.find(n => (n.siswaId === siswa.id || n.siswaId === siswa.nisn) && n.jenis === jenis);
             return found ? (found.status === 'Menunggu Koreksi' ? 'Pending' : found.nilai) : '-';
         };
