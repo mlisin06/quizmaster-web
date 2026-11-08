@@ -39,7 +39,6 @@
                 </div>
             </div>
             <div class="flex items-center space-x-3 mt-2 sm:mt-0">
-                <!-- Tombol Mode Demo Cepat disembunyikan (hidden) -->
                 <button onclick="triggerDemoMode()" class="hidden px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white transition shadow items-center gap-1.5">
                     <i class="fa-solid fa-wand-magic-sparkles"></i> Mode Demo Cepat
                 </button>
@@ -225,7 +224,7 @@
                         <h3 class="font-bold text-slate-800 text-base">Rekapitulasi Nilai Siswa</h3>
                         <p class="text-xs text-slate-500">Nilai rata-rata dinamis dihitung otomatis hanya dari kuis yang pernah dikerjakan.</p>
                     </div>
-                    <button onclick="exportRekapCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"><i class="fa-solid fa-file-excel mr-2"></i>Ekspor CSV</button>
+                    <button onclick="exportRekapCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"><i class="fa-solid fa-file-excel mr-2"></i>Ekspor CSV Profesional</button>
                 </div>
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="overflow-x-auto">
@@ -357,13 +356,63 @@
                     <button onclick="tutupWorkspace()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl text-sm font-semibold transition">
                         <i class="fa-solid fa-xmark mr-1.5"></i>Batal & Kembali
                     </button>
-                    <button onclick="submitKuisSiswa()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-7 py-2.5 rounded-xl text-sm font-semibold transition shadow-lg shadow-emerald-200 flex items-center gap-2">
+                    <button onclick="konfirmasiKirimUjian()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-7 py-2.5 rounded-xl text-sm font-semibold transition shadow-lg shadow-emerald-200 flex items-center gap-2">
                         <i class="fa-solid fa-paper-plane"></i> Kirim Jawaban Ujian
                     </button>
                 </div>
             </div>
+
+            <!-- 4. Review Hasil Instan (Card Ringkasan Hasil Siswa) -->
+            <div id="siswaResultCard" class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 sm:p-8 space-y-6 hidden max-w-3xl mx-auto">
+                <div class="text-center space-y-2">
+                    <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto text-3xl font-bold shadow-inner">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+                    <h2 class="font-bold text-2xl text-slate-800">Hasil Evaluasi Kuis</h2>
+                    <p class="text-xs text-slate-500" id="resSubTitle">Bab 1 - Pilihan Ganda</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                    <div class="bg-slate-50 p-4 rounded-2xl border">
+                        <div class="text-xs text-slate-500 uppercase font-semibold">Skor Akhir</div>
+                        <div class="text-3xl font-extrabold text-indigo-600 mt-1" id="resNilaiAngka">85</div>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-2xl border">
+                        <div class="text-xs text-slate-500 uppercase font-semibold">Status Pengerjaan</div>
+                        <div class="text-base font-bold text-emerald-600 mt-2" id="resStatusText">Selesai</div>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-2xl border">
+                        <div class="text-xs text-slate-500 uppercase font-semibold">Jumlah Terjawab</div>
+                        <div class="text-2xl font-extrabold text-slate-700 mt-1" id="resDetailCount">10/10</div>
+                    </div>
+                </div>
+
+                <div class="space-y-3 pt-2">
+                    <h4 class="font-bold text-sm text-slate-700 uppercase"><i class="fa-solid fa-circle-check text-indigo-600 mr-2"></i>Rincian Review Jawaban</h4>
+                    <div id="resDetailList" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
+                </div>
+
+                <button onclick="tutupResultCard()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3.5 rounded-xl transition shadow-lg shadow-indigo-100 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-house"></i> Kembali ke Dashboard Ujian
+                </button>
+            </div>
         </section>
     </main>
+
+    <!-- MODAL KONFIRMASI KIRIM UJIAN (POIN 1) -->
+    <div id="modalKonfirmasiKirim" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden p-6 text-center space-y-4">
+            <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto text-2xl font-bold">
+                <i class="fa-solid fa-circle-question"></i>
+            </div>
+            <h3 class="font-bold text-xl text-slate-800">Konfirmasi Pengiriman Ujian</h3>
+            <p class="text-xs text-slate-500 px-4">Apakah Anda yakin ingin mengirim jawaban sekarang? Pastikan seluruh soal telah diperiksa kembali.</p>
+            <div class="flex gap-3 pt-3">
+                <button onclick="batalKirimUjian()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-semibold text-sm transition">Periksa Lagi</button>
+                <button onclick="eksekusiKirimUjian(false)" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-semibold text-sm transition shadow-lg shadow-emerald-200">Ya, Kirim Sekarang</button>
+            </div>
+        </div>
+    </div>
 
     <!-- MODAL KELOLA MASTER DATA -->
     <div id="masterModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
@@ -530,7 +579,6 @@
             }
         }
 
-        // FUNGSI VERIFIKASI PIN PANEL GURU
         function requestPinGuru() {
             const pinInput = prompt("Masukkan PIN Panel Guru:");
             if(pinInput === "240785") {
@@ -590,7 +638,7 @@
 
             if(state.cheatViolationCount >= maxViolation) {
                 alert(`🚨 Ujian Anda Dibatalkan Otomatis!\nAnda telah melanggar aturan anti-curang sebanyak ${maxViolation} kali.`);
-                submitKuisSiswa(true);
+                eksekusiKirimUjian(true);
             } else {
                 alert(`⚠️ PERINGATAN PELANGGARAN (${state.cheatViolationCount}/${maxViolation})\n${reason}\nJika mencapai 3 kali, ujian akan otomatis dikirim!`);
             }
@@ -656,6 +704,7 @@
                 document.getElementById('siswaLoginCard').classList.remove('hidden');
                 document.getElementById('siswaDashboard').classList.add('hidden');
                 document.getElementById('siswaWorkspace').classList.add('hidden');
+                document.getElementById('siswaResultCard').classList.add('hidden');
             } else {
                 renderGuru();
             }
@@ -786,6 +835,46 @@
                     </tr>
                 `;
             });
+        }
+
+        // FUNGSI EKSPOR CSV PROFESIONAL (POIN 4)
+        function exportRekapCSV() {
+            const kelasAktif = document.getElementById('filterKelas').value;
+            const tpAktif = document.getElementById('filterTp').value;
+            const semAktif = document.getElementById('filterSem').value;
+            const filteredSiswa = state.siswaList.filter(s => s.kelas === kelasAktif);
+
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += `LAPORAN REKAPITULASI NILAI SISWA\n`;
+            csvContent += `Tahun Pelajaran: ${tpAktif} (Semester ${semAktif})\n`;
+            csvContent += `Kelas: ${kelasAktif}\n`;
+            csvContent += `Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}\n\n`;
+            csvContent += `No,NISN,Nama Lengkap,Kelas,Pilihan Ganda,Anagram,Card Matching,Merangkum Materi,Essay,Rata-Rata\n`;
+
+            filteredSiswa.forEach((siswa, idx) => {
+                const getVal = (jenis) => {
+                    const found = state.nilaiList.find(n => n.siswaId === siswa.id && n.jenis === jenis);
+                    return found ? (found.status === 'Menunggu Koreksi' ? 'Pending' : found.nilai) : '-';
+                };
+                const nPg = getVal('Pilihan Ganda');
+                const nAn = getVal('Anagram');
+                const nCard = getVal('Card Matching');
+                const nSum = getVal('Merangkum Materi');
+                const nEssay = getVal('Essay');
+
+                const nums = [nPg, nAn, nCard, nSum, nEssay].filter(v => typeof v === 'number');
+                const avg = nums.length > 0 ? Math.round(nums.reduce((a, b) => a + b, 0) / nums.length) : '-';
+
+                csvContent += `${idx + 1},"${siswa.nisn}","${siswa.nama}","${siswa.kelas}",${nPg},${nAn},${nCard},${nSum},${nEssay},${avg}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.href = encodedUri;
+            link.download = `rekap_nilai_${kelasAktif.toLowerCase().replace(/\s+/g, '_')}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         function renderKoreksiGuru() {
@@ -1244,7 +1333,7 @@
             state.timerInterval = setInterval(() => {
                 let m = Math.floor(totalDetik / 60), s = totalDetik % 60;
                 document.getElementById('wsTimer').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
-                if(totalDetik <= 0) { clearInterval(state.timerInterval); submitKuisSiswa(); }
+                if(totalDetik <= 0) { clearInterval(state.timerInterval); eksekusiKirimUjian(false); }
                 totalDetik--;
             }, 1000);
         }
@@ -1255,7 +1344,17 @@
             document.getElementById('siswaDashboard').classList.remove('hidden');
         }
 
-        function submitKuisSiswa(isAutoSubmit = false) {
+        // FUNGSI KONFIRMASI KIRIM UJIAN (POIN 1)
+        function konfirmasiKirimUjian() {
+            document.getElementById('modalKonfirmasiKirim').classList.remove('hidden');
+        }
+
+        function batalKirimUjian() {
+            document.getElementById('modalKonfirmasiKirim').classList.add('hidden');
+        }
+
+        function eksekusiKirimUjian(isAutoSubmit = false) {
+            document.getElementById('modalKonfirmasiKirim').classList.add('hidden');
             if(state.timerInterval) clearInterval(state.timerInterval);
 
             const jenis = document.getElementById('wsJenisKuis').innerText;
@@ -1264,15 +1363,18 @@
             let totalSkor = 0;
             let totalBobot = 0;
             let detailJawaban = {};
+            let reviewHTML = '';
+            let terjawabCount = 0;
+            let totalSoalCount = 0;
             let adaEssay = (jenis === 'Essay' || jenis === 'Merangkum Materi');
 
             if(!isAutoSubmit) {
                 const items = document.querySelectorAll('#wsContentArea > div');
-                items.forEach(item => {
+                totalSoalCount = items.length;
+                items.forEach((item, idx) => {
                     const soalId = item.getAttribute('data-soal-id');
                     const kunci = item.getAttribute('data-kunci');
                     const jns = item.getAttribute('data-jenis');
-                    
                     const soalObj = state.soalList.find(s => s.id === soalId);
                     const bobot = soalObj ? (soalObj.bobot || 10) : 10;
                     totalBobot += bobot;
@@ -1281,20 +1383,47 @@
                         const sel = item.querySelector('input[type="radio"]:checked');
                         const val = sel ? sel.value : '-';
                         detailJawaban[soalId] = val;
-                        if(sel && val.trim().toUpperCase() === kunci.trim().toUpperCase()) {
-                            totalSkor += bobot;
-                        }
+                        if(sel) terjawabCount++;
+                        let isBenar = sel && val.trim().toUpperCase() === kunci.trim().toUpperCase();
+                        if(isBenar) totalSkor += bobot;
+
+                        reviewHTML += `
+                            <div class="p-3 bg-slate-50 rounded-xl border text-xs space-y-1">
+                                <div class="font-bold text-slate-700">Soal ${idx + 1}: ${soalObj ? soalObj.tanya : ''}</div>
+                                <div class="flex justify-between">
+                                    <span>Jawaban Anda: <b class="${isBenar ? 'text-emerald-600' : 'text-rose-600'}">${val}</b></span>
+                                    <span>Kunci: <b class="text-indigo-600">${kunci}</b></span>
+                                </div>
+                            </div>
+                        `;
                     } else if(jns === 'Anagram' || jns === 'Card Matching') {
                         const inp = item.querySelector('.siswa-ans');
                         const val = inp ? inp.value.trim() : '-';
                         detailJawaban[soalId] = val;
-                        if(val.toUpperCase() === kunci.trim().toUpperCase()) {
-                            totalSkor += bobot;
-                        }
+                        if(val && val !== '-') terjawabCount++;
+                        let isBenar = val.toUpperCase() === kunci.trim().toUpperCase();
+                        if(isBenar) totalSkor += bobot;
+
+                        reviewHTML += `
+                            <div class="p-3 bg-slate-50 rounded-xl border text-xs space-y-1">
+                                <div class="font-bold text-slate-700">Soal ${idx + 1}: ${soalObj ? soalObj.tanya : ''}</div>
+                                <div class="flex justify-between">
+                                    <span>Jawaban Anda: <b class="${isBenar ? 'text-emerald-600' : 'text-rose-600'}">${val}</b></span>
+                                    <span>Kunci: <b class="text-indigo-600">${kunci}</b></span>
+                                </div>
+                            </div>
+                        `;
                     } else {
                         const inp = item.querySelector('.siswa-ans');
                         const val = inp ? inp.value.trim() : '-';
                         detailJawaban[soalId] = val;
+                        if(val && val !== '-') terjawabCount++;
+                        reviewHTML += `
+                            <div class="p-3 bg-slate-50 rounded-xl border text-xs space-y-1">
+                                <div class="font-bold text-slate-700">Soal ${idx + 1} (Uraian)</div>
+                                <div class="text-slate-600 italic">Jawaban telah disimpan dan menunggu koreksi guru.</div>
+                            </div>
+                        `;
                     }
                 });
             }
@@ -1317,13 +1446,26 @@
             state.nilaiList.push(entry);
             saveToStorage();
 
-            if(isAutoSubmit) {
-                alert('Ujian Anda dihentikan dan dikirim otomatis karena terdeteksi indikasi kecurangan!');
-            } else {
-                alert(adaEssay ? 'Ujian berhasil dikirim! Menunggu koreksi nilai dari guru.' : `Ujian selesai! Nilai Anda: ${nilaiAkhir}`);
-            }
+            document.getElementById('siswaWorkspace').classList.add('hidden');
 
-            tutupWorkspace();
+            // JIKA BUKAN ESSAY, TAMPILKAN REVIEW HASIL INSTAN (POIN 3)
+            if(!adaEssay && !isAutoSubmit) {
+                document.getElementById('resSubTitle').innerText = `${bab} (${jenis})`;
+                document.getElementById('resNilaiAngka').innerText = nilaiAkhir;
+                document.getElementById('resStatusText').innerText = 'Selesai & Dinilai';
+                document.getElementById('resDetailCount').innerText = `${terjawabCount}/${totalSoalCount}`;
+                document.getElementById('resDetailList').innerHTML = reviewHTML;
+                document.getElementById('siswaResultCard').classList.remove('hidden');
+            } else {
+                alert(isAutoSubmit ? 'Ujian dihentikan dan dikirim otomatis karena terindikasi kecurangan!' : 'Ujian uraian berhasil dikirim! Menunggu koreksi nilai dari guru.');
+                tutupWorkspace();
+                renderSiswaDashboard();
+            }
+        }
+
+        function tutupResultCard() {
+            document.getElementById('siswaResultCard').classList.add('hidden');
+            document.getElementById('siswaDashboard').classList.remove('hidden');
             renderSiswaDashboard();
         }
     </script>
