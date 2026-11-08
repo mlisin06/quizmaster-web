@@ -374,7 +374,7 @@
         </div>
     </div>
 
-    <!-- MODAL EDIT SOAL -->
+    <!-- MODAL TAMBAH & EDIT SOAL -->
     <div id="soalModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden space-y-4 p-6">
             <h3 class="font-bold text-lg text-slate-800" id="modalSoalTitle">Tambah Soal</h3>
@@ -385,11 +385,11 @@
                     <textarea id="modalTanya" rows="3" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500" placeholder="Tulis instruksi soal..."></textarea>
                 </div>
                 <div id="opsiMCContainer" class="space-y-2">
-                    <label class="block text-xs font-semibold text-slate-600 uppercase">Pilihan Ganda & Kunci</label>
-                    <div class="flex items-center space-x-2"><input type="text" id="optA" class="w-full border rounded p-2 text-sm" placeholder="Opsi A"><label class="text-xs font-bold"><input type="radio" name="kunciMC" value="A"> Kunci</label></div>
-                    <div class="flex items-center space-x-2"><input type="text" id="optB" class="w-full border rounded p-2 text-sm" placeholder="Opsi B"><label class="text-xs font-bold"><input type="radio" name="kunciMC" value="B"> Kunci</label></div>
-                    <div class="flex items-center space-x-2"><input type="text" id="optC" class="w-full border rounded p-2 text-sm" placeholder="Opsi C"><label class="text-xs font-bold"><input type="radio" name="kunciMC" value="C"> Kunci</label></div>
-                    <div class="flex items-center space-x-2"><input type="text" id="optD" class="w-full border rounded p-2 text-sm" placeholder="Opsi D"><label class="text-xs font-bold"><input type="radio" name="kunciMC" value="D"> Kunci</label></div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase">Pilihan Ganda & Kunci Jawaban</label>
+                    <div class="flex items-center space-x-2"><input type="text" id="optA" class="w-full border rounded p-2 text-sm" placeholder="Opsi A"><label class="text-xs font-bold whitespace-nowrap"><input type="radio" name="kunciMC" value="A"> Kunci</label></div>
+                    <div class="flex items-center space-x-2"><input type="text" id="optB" class="w-full border rounded p-2 text-sm" placeholder="Opsi B"><label class="text-xs font-bold whitespace-nowrap"><input type="radio" name="kunciMC" value="B"> Kunci</label></div>
+                    <div class="flex items-center space-x-2"><input type="text" id="optC" class="w-full border rounded p-2 text-sm" placeholder="Opsi C"><label class="text-xs font-bold whitespace-nowrap"><input type="radio" name="kunciMC" value="C"> Kunci</label></div>
+                    <div class="flex items-center space-x-2"><input type="text" id="optD" class="w-full border rounded p-2 text-sm" placeholder="Opsi D"><label class="text-xs font-bold whitespace-nowrap"><input type="radio" name="kunciMC" value="D"> Kunci</label></div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Bobot Soal</label>
@@ -587,14 +587,16 @@
                     tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">Belum ada soal pada filter ini.</td></tr>`;
                 } else {
                     filteredSoal.forEach((s, idx) => {
+                        let opsiHtml = s.jenis === 'Pilihan Ganda' ? `<div class="text-xs text-slate-500 mt-1">Kunci: <b class="text-emerald-600">${s.kunci}</b> | A: ${s.opsi?.A || '-'}, B: ${s.opsi?.B || '-'}, C: ${s.opsi?.C || '-'}, D: ${s.opsi?.D || '-'}</div>` : '';
                         tbody.innerHTML += `
                             <tr class="hover:bg-slate-50">
                                 <td class="p-3 text-center">${idx + 1}</td>
-                                <td class="p-3 font-medium text-slate-800">${s.tanya}</td>
+                                <td class="p-3 font-medium text-slate-800">${s.tanya} ${opsiHtml}</td>
                                 <td class="p-3 text-xs text-slate-600">${s.jenis}</td>
                                 <td class="p-3 text-center">${s.bobot}</td>
-                                <td class="p-3 text-center space-x-2">
-                                    <button onclick="deleteSoal('${s.id}')" class="text-rose-600"><i class="fa-solid fa-trash"></i></button>
+                                <td class="p-3 text-center space-x-3">
+                                    <button onclick="editSoal('${s.id}')" class="text-indigo-600 hover:text-indigo-800" title="Edit Soal"><i class="fa-solid fa-pen-to-square"></i></button>
+                                    <button onclick="deleteSoal('${s.id}')" class="text-rose-600 hover:text-rose-800" title="Hapus Soal"><i class="fa-solid fa-trash"></i></button>
                                 </td>
                             </tr>
                         `;
@@ -707,33 +709,79 @@
             }
         }
 
-        function openSoalModal() { document.getElementById('soalModal').classList.remove('hidden'); }
+        function openSoalModal() { 
+            document.getElementById('editSoalId').value = '';
+            document.getElementById('modalSoalTitle').innerText = 'Tambah Soal';
+            document.getElementById('modalTanya').value = '';
+            document.getElementById('optA').value = '';
+            document.getElementById('optB').value = '';
+            document.getElementById('optC').value = '';
+            document.getElementById('optD').value = '';
+            document.getElementById('modalBobot').value = '10';
+            document.querySelectorAll('input[name="kunciMC"]').forEach(r => r.checked = false);
+            document.getElementById('soalModal').classList.remove('hidden'); 
+        }
+
         function closeSoalModal() { document.getElementById('soalModal').classList.add('hidden'); }
 
+        function editSoal(id) {
+            const soal = state.soalList.find(s => s.id === id);
+            if(!soal) return;
+
+            document.getElementById('editSoalId').value = soal.id;
+            document.getElementById('modalSoalTitle').innerText = 'Edit Soal';
+            document.getElementById('modalTanya').value = soal.tanya;
+            document.getElementById('optA').value = soal.opsi?.A || '';
+            document.getElementById('optB').value = soal.opsi?.B || '';
+            document.getElementById('optC').value = soal.opsi?.C || '';
+            document.getElementById('optD').value = soal.opsi?.D || '';
+            document.getElementById('modalBobot').value = soal.bobot || 10;
+
+            document.querySelectorAll('input[name="kunciMC"]').forEach(r => {
+                r.checked = (r.value === soal.kunci);
+            });
+
+            document.getElementById('soalModal').classList.remove('hidden');
+        }
+
         function saveSoal() {
-            const id = 's_' + Date.now();
+            const editId = document.getElementById('editSoalId').value;
             const tp = document.getElementById('filterTp').value;
             const sem = document.getElementById('filterSem').value;
             const kelas = document.getElementById('filterKelas').value;
             const bab = document.getElementById('filterBab').value;
             const jenis = document.getElementById('filterJenis').value;
-            const tanya = document.getElementById('modalTanya').value;
+            const tanya = document.getElementById('modalTanya').value.trim();
             const bobot = parseFloat(document.getElementById('modalBobot').value) || 10;
 
-            if(!tanya.trim()) { alert('Pertanyaan tidak boleh kosong!'); return; }
+            if(!tanya) { alert('Pertanyaan tidak boleh kosong!'); return; }
 
             const opsi = {
-                A: document.getElementById('optA').value || 'Pilihan A',
-                B: document.getElementById('optB').value || 'Pilihan B',
-                C: document.getElementById('optC').value || 'Pilihan C',
-                D: document.getElementById('optD').value || 'Pilihan D'
+                A: document.getElementById('optA').value.trim() || 'Pilihan A',
+                B: document.getElementById('optB').value.trim() || 'Pilihan B',
+                C: document.getElementById('optC').value.trim() || 'Pilihan C',
+                D: document.getElementById('optD').value.trim() || 'Pilihan D'
             };
 
-            state.soalList.push({ id, tp, sem, kelas, bab, jenis, tanya, opsi, kunci: 'A', bobot });
+            const selectedKunci = document.querySelector('input[name="kunciMC"]:checked');
+            const kunci = selectedKunci ? selectedKunci.value : 'A';
+
+            if(editId) {
+                // Update Soal Existing
+                const idx = state.soalList.findIndex(s => s.id === editId);
+                if(idx !== -1) {
+                    state.soalList[idx] = { ...state.soalList[idx], tanya, opsi, kunci, bobot };
+                }
+            } else {
+                // Tambah Soal Baru
+                const id = 's_' + Date.now();
+                state.soalList.push({ id, tp, sem, kelas, bab, jenis, tanya, opsi, kunci, bobot });
+            }
+
             saveToStorage();
             closeSoalModal();
             renderGuru();
-            document.getElementById('modalTanya').value = '';
+            alert('Soal berhasil disimpan!');
         }
 
         function deleteSoal(id) {
@@ -968,7 +1016,7 @@
                 if(jenis === 'Pilihan Ganda') {
                     contentArea.innerHTML += `
                         <div class="p-4 bg-slate-50 rounded-xl border space-y-2">
-                            <div class="font-semibold text-slate-800 text-sm">Soal ${idx + 1}: ${s.tanya}</div>
+                            <div class="font-semibold text-slate-800 text-sm">Soal ${idx + 1} (Bobot: ${s.bobot}): ${s.tanya}</div>
                             <div class="space-y-1 pl-2">
                                 <label class="block text-xs text-slate-600 cursor-pointer"><input type="radio" name="jawaban_${s.id}" value="A" class="mr-2"> A. ${s.opsi?.A || 'Pilihan A'}</label>
                                 <label class="block text-xs text-slate-600 cursor-pointer"><input type="radio" name="jawaban_${s.id}" value="B" class="mr-2"> B. ${s.opsi?.B || 'Pilihan B'}</label>
@@ -1023,19 +1071,23 @@
                 s.tp === tp && s.sem === sem && s.kelas === kelas && s.bab === bab && s.jenis === jenis
             );
 
-            let totalSkor = 0;
-            let totalBobot = 0;
+            let totalPoinDiperoleh = 0;
+            let totalBobotMaksimal = 0;
             let detailJawabanSiswa = {};
             let adaEssay = (jenis === 'Essay' || jenis === 'Merangkum Materi');
 
             soalPilihan.forEach(s => {
-                totalBobot += (s.bobot || 10);
+                const bobotSoal = Number(s.bobot) || 10;
+                totalBobotMaksimal += bobotSoal;
+
                 if(jenis === 'Pilihan Ganda') {
                     const selectedOpt = document.querySelector(`input[name="jawaban_${s.id}"]:checked`);
                     const val = selectedOpt ? selectedOpt.value : '-';
                     detailJawabanSiswa[s.id] = val;
-                    if(selectedOpt && selectedOpt.value === s.kunci) {
-                        totalSkor += (s.bobot || 10);
+                    
+                    // Validasi pencocokan jawaban siswa dengan kunci jawaban (case-insensitive)
+                    if(selectedOpt && selectedOpt.value.trim().toUpperCase() === String(s.kunci).trim().toUpperCase()) {
+                        totalPoinDiperoleh += bobotSoal;
                     }
                 } else {
                     const textVal = document.getElementById(`input_essay_${s.id}`)?.value || '-';
@@ -1043,7 +1095,8 @@
                 }
             });
 
-            let nilaiAkhir = totalBobot > 0 ? Math.round((totalSkor / totalBobot) * 100) : 0;
+            // Konversi ke skala 0 - 100 secara proporsional
+            let nilaiAkhir = totalBobotMaksimal > 0 ? Math.round((totalPoinDiperoleh / totalBobotMaksimal) * 100) : 0;
             let statusNilai = adaEssay ? 'Menunggu Koreksi' : 'Selesai';
             if(adaEssay) nilaiAkhir = 0;
 
