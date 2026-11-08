@@ -39,10 +39,11 @@
                 </div>
             </div>
             <div class="flex items-center space-x-3 mt-2 sm:mt-0">
-                <button onclick="triggerDemoMode()" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white transition shadow flex items-center gap-1.5">
+                <!-- Tombol Mode Demo Cepat disembunyikan (hidden) -->
+                <button onclick="triggerDemoMode()" class="hidden px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white transition shadow items-center gap-1.5">
                     <i class="fa-solid fa-wand-magic-sparkles"></i> Mode Demo Cepat
                 </button>
-                <button onclick="switchRole('guru')" id="btnRoleGuru" class="px-4 py-1.5 rounded-lg text-sm font-medium bg-indigo-900 border border-indigo-600 transition shadow">Panel Guru</button>
+                <button onclick="requestPinGuru()" id="btnRoleGuru" class="px-4 py-1.5 rounded-lg text-sm font-medium bg-indigo-900 border border-indigo-600 transition shadow">Panel Guru</button>
                 <button onclick="switchRole('siswa')" id="btnRoleSiswa" class="px-4 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 hover:bg-indigo-500 transition shadow">Portal Siswa</button>
             </div>
         </div>
@@ -323,7 +324,7 @@
                 </div>
             </div>
 
-            <!-- 3. Workspace Pengerjaan Ujian Siswa (Soal & Opsi Diacak Otomatis) -->
+            <!-- 3. Workspace Pengerjaan Ujian Siswa -->
             <div id="siswaWorkspace" class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 sm:p-8 space-y-6 hidden max-w-4xl mx-auto relative">
                 
                 <div id="cheatWarningBanner" class="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-2 rounded-xl text-xs flex items-center justify-between hidden">
@@ -468,7 +469,7 @@
         </div>
     </div>
 
-    <!-- Script Aplikasi Utama dengan Fitur Soal Acak -->
+    <!-- Script Aplikasi Utama -->
     <script>
         let state = {
             role: 'guru',
@@ -526,6 +527,16 @@
                     state.settingsList = parsed.settingsList || state.settingsList;
                     state.nilaiList = parsed.nilaiList || state.nilaiList;
                 } catch(e) {}
+            }
+        }
+
+        // FUNGSI VERIFIKASI PIN PANEL GURU
+        function requestPinGuru() {
+            const pinInput = prompt("Masukkan PIN Panel Guru:");
+            if(pinInput === "240785") {
+                switchRole('guru');
+            } else if(pinInput !== null) {
+                alert("PIN salah! Akses ditolak.");
             }
         }
 
@@ -994,10 +1005,6 @@
             reader.readAsText(file);
         }
 
-        // ========================================== //
-        // PENGGANTI FUNGSI CSV LAMA (DINAMIS KUIS)     //
-        // ========================================== //
-
         function downloadSoalTemplate() {
             const jenis = document.getElementById('filterJenis').value;
             let csvContent = "data:text/csv;charset=utf-8,";
@@ -1088,6 +1095,7 @@
             };
             reader.readAsText(file);
         }
+
         function populateSiswaDropdown() {
             document.getElementById('siswaLoginKelas').innerHTML = state.master.kelas.map(k => `<option value="${k}">${k}</option>`).join('');
             const kelas = document.getElementById('siswaLoginKelas').value;
@@ -1151,13 +1159,12 @@
                     <div class="col-span-full p-10 text-center bg-white rounded-2xl border border-slate-200 space-y-3">
                         <div class="w-12 h-12 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto text-xl"><i class="fa-solid fa-triangle-exclamation"></i></div>
                         <h4 class="font-bold text-slate-700">Belum Ada Kuis Aktif</h4>
-                        <p class="text-xs text-slate-500 max-w-sm mx-auto">Saat ini belum ada kuis berstatus aktif yang dibuka oleh Guru untuk kelas Anda. Silakan coba gunakan tombol <b>Mode Demo Cepat</b> di atas.</p>
+                        <p class="text-xs text-slate-500 max-w-sm mx-auto">Saat ini belum ada kuis berstatus aktif yang dibuka oleh Guru untuk kelas Anda.</p>
                     </div>
                 `;
             }
         }
 
-        // FUNGSI UTAMA: MEMULAI UJIAN DENGAN SOAL & OPSI ACAK OTOMATIS
         function mulaiUjianSiswa(tp, sem, kelas, bab, jenis, durasiMenit) {
             requestFullscreen();
 
@@ -1169,10 +1176,7 @@
             document.getElementById('wsJenisKuis').innerText = jenis;
             document.getElementById('wsJudulKuis').innerText = bab;
 
-            // Ambil daftar soal sesuai filter
             let soalPilihan = state.soalList.filter(s => s.tp === tp && s.sem === sem && s.kelas === kelas && s.bab === bab && s.jenis === jenis);
-            
-            // FITUR 1: ACAK URUTAN SOAL ANTAR SISWA (Fisher-Yates Shuffle)
             soalPilihan = soalPilihan.sort(() => Math.random() - 0.5);
 
             const contentArea = document.getElementById('wsContentArea');
@@ -1185,13 +1189,12 @@
 
             soalPilihan.forEach((s, idx) => {
                 if(jenis === 'Pilihan Ganda') {
-                    // FITUR 2: ACAK URUTAN PILIHAN OPSI JAWABAN (A, B, C, D)
                     let keys = ['A', 'B', 'C', 'D'].filter(k => s.opsi && s.opsi[k]);
                     keys = keys.sort(() => Math.random() - 0.5);
 
                     let opsiHtml = '';
                     keys.forEach((key, oIdx) => {
-                        let labelHuruf = ['A', 'B', 'C', 'D'][oIdx]; // Huruf tampilan diacak
+                        let labelHuruf = ['A', 'B', 'C', 'D'][oIdx];
                         opsiHtml += `
                             <label class="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-indigo-300 transition text-sm">
                                 <input type="radio" name="jawaban_${s.id}" value="${key}" class="text-indigo-600 focus:ring-indigo-500 siswa-ans"> 
@@ -1278,7 +1281,6 @@
                         const sel = item.querySelector('input[type="radio"]:checked');
                         const val = sel ? sel.value : '-';
                         detailJawaban[soalId] = val;
-                        // Val mencocokkan nilai asli opsi (A, B, C, D) terlepas dari posisi acaknya di layar
                         if(sel && val.trim().toUpperCase() === kunci.trim().toUpperCase()) {
                             totalSkor += bobot;
                         }
@@ -1311,19 +1313,19 @@
                 jawaban: detailJawaban
             };
 
-        state.nilaiList = state.nilaiList.filter(n => !(n.siswaId === state.currentSiswa.id && n.bab === bab && n.jenis === jenis));
-        state.nilaiList.push(entry);
-        saveToStorage();
+            state.nilaiList = state.nilaiList.filter(n => !(n.siswaId === state.currentSiswa.id && n.bab === bab && n.jenis === jenis));
+            state.nilaiList.push(entry);
+            saveToStorage();
 
-        if(isAutoSubmit) {
-            alert('Ujian Anda dihentikan dan dikirim otomatis karena terdeteksi indikasi kecurangan!');
-        } else {
-            alert(adaEssay ? 'Ujian berhasil dikirim! Menunggu koreksi nilai dari guru.' : `Ujian selesai! Nilai Anda: ${nilaiAkhir}`);
+            if(isAutoSubmit) {
+                alert('Ujian Anda dihentikan dan dikirim otomatis karena terdeteksi indikasi kecurangan!');
+            } else {
+                alert(adaEssay ? 'Ujian berhasil dikirim! Menunggu koreksi nilai dari guru.' : `Ujian selesai! Nilai Anda: ${nilaiAkhir}`);
+            }
+
+            tutupWorkspace();
+            renderSiswaDashboard();
         }
-
-        tutupWorkspace();
-        renderSiswaDashboard();
-    }
-</script>
+    </script>
 </body>
 </html>
