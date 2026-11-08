@@ -290,7 +290,7 @@
                 </div>
             </div>
 
-            <!-- Dashboard Ujian Siswa (HANYA MEMUAT KUIS BERSTATUS AKTIF) -->
+            <!-- Dashboard Ujian Siswa -->
             <div id="siswaDashboard" class="space-y-6 hidden">
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-4">
                     <div>
@@ -326,7 +326,7 @@
         </section>
     </main>
 
-    <!-- MODAL KELOLA MASTER DATA (DINAMIS TP, KELAS, BAB) -->
+    <!-- MODAL KELOLA MASTER DATA -->
     <div id="masterModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden space-y-4 p-6">
             <div class="flex justify-between items-center border-b pb-3">
@@ -335,7 +335,6 @@
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <!-- Master TP -->
                 <div class="bg-slate-50 p-3 rounded-xl border space-y-3">
                     <h4 class="font-bold text-xs text-slate-700 uppercase">Tahun Pelajaran</h4>
                     <div class="flex space-x-1">
@@ -345,7 +344,6 @@
                     <ul id="listMasterTp" class="space-y-1 max-h-40 overflow-y-auto text-xs"></ul>
                 </div>
 
-                <!-- Master Kelas -->
                 <div class="bg-slate-50 p-3 rounded-xl border space-y-3">
                     <h4 class="font-bold text-xs text-slate-700 uppercase">Daftar Kelas</h4>
                     <div class="flex space-x-1">
@@ -355,7 +353,6 @@
                     <ul id="listMasterKelas" class="space-y-1 max-h-40 overflow-y-auto text-xs"></ul>
                 </div>
 
-                <!-- Master Bab -->
                 <div class="bg-slate-50 p-3 rounded-xl border space-y-3">
                     <h4 class="font-bold text-xs text-slate-700 uppercase">Bab Materi</h4>
                     <div class="flex space-x-1">
@@ -388,20 +385,6 @@
                     <div class="flex items-center space-x-2"><input type="text" id="optB" class="w-full border rounded p-2 text-sm" placeholder="Opsi B"><label class="text-xs font-bold"><input type="radio" name="kunciMC" value="B"> Kunci</label></div>
                     <div class="flex items-center space-x-2"><input type="text" id="optC" class="w-full border rounded p-2 text-sm" placeholder="Opsi C"><label class="text-xs font-bold"><input type="radio" name="kunciMC" value="C"> Kunci</label></div>
                     <div class="flex items-center space-x-2"><input type="text" id="optD" class="w-full border rounded p-2 text-sm" placeholder="Opsi D"><label class="text-xs font-bold"><input type="radio" name="kunciMC" value="D"> Kunci</label></div>
-                </div>
-                <div id="opsiCardContainer" class="hidden space-y-2">
-                    <input type="text" id="cardPairA" class="w-full border rounded p-2 text-sm" placeholder="Depan / Pertanyaan">
-                    <input type="text" id="cardPairB" class="w-full border rounded p-2 text-sm" placeholder="Belakang / Jawaban Pasangan">
-                </div>
-                <div id="opsiWordContainer" class="hidden space-y-2">
-                    <input type="text" id="wordTarget" class="w-full border rounded p-2 text-sm" placeholder="Kata Kunci Target">
-                    <input type="text" id="wordClue" class="w-full border rounded p-2 text-sm" placeholder="Petunjuk / Clue">
-                </div>
-                <div id="opsiSummaryContainer" class="hidden space-y-2">
-                    <input type="text" id="summaryTopic" class="w-full border rounded p-2 text-sm" placeholder="Topik Rangkuman">
-                </div>
-                <div id="opsiEssayContainer" class="hidden space-y-2">
-                    <textarea id="essayRubrik" rows="2" class="w-full border rounded p-2 text-sm" placeholder="Kunci Jawaban Acuan Guru"></textarea>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Bobot Soal</label>
@@ -441,30 +424,6 @@
         </div>
     </div>
 
-    <!-- MODAL KOREKSI ESSAY -->
-    <div id="koreksiModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden space-y-4 p-6">
-            <h3 class="font-bold text-lg text-slate-800">Koreksi Jawaban Siswa</h3>
-            <input type="hidden" id="koreksiTargetId">
-            <div class="space-y-3">
-                <div id="koreksiInfoSiswa" class="font-semibold text-sm text-slate-800"></div>
-                <div id="koreksiJawabanSiswa" class="bg-slate-50 border p-3 rounded-lg text-sm text-slate-700 max-h-40 overflow-y-auto"></div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nilai (0 - 100)</label>
-                    <input type="number" id="inputNilaiKoreksi" min="0" max="100" class="w-full border rounded-lg p-2.5 text-sm" placeholder="Contoh: 85">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Catatan Guru</label>
-                    <textarea id="inputCatatanKoreksi" rows="2" class="w-full border rounded-lg p-2.5 text-sm" placeholder="Catatan masukan..."></textarea>
-                </div>
-            </div>
-            <div class="flex justify-end space-x-2 pt-2 border-t">
-                <button onclick="closeKoreksiModal()" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm font-medium">Batal</button>
-                <button onclick="submitKoreksiGuru()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium">Simpan Nilai</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Script Aplikasi Utama -->
     <script>
         let state = {
@@ -485,8 +444,7 @@
                 '2025/2026_Ganjil_Kelas X_Bab 1 - Pengantar_Pilihan Ganda': { aktif: true, fullscreen: true, randomSoal: false, durasi: 30 }
             },
             nilaiList: [],
-            currentSiswa: null,
-            timerInterval: null
+            currentSiswa: null
         };
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -562,14 +520,6 @@
         function setupFilterListeners() {
             ['filterTp', 'filterSem', 'filterKelas', 'filterBab', 'filterJenis'].forEach(id => {
                 document.getElementById(id).addEventListener('change', renderGuru);
-            });
-            document.getElementById('filterJenis').addEventListener('change', (e) => {
-                const val = e.target.value;
-                document.getElementById('opsiMCContainer').classList.toggle('hidden', val !== 'Pilihan Ganda');
-                document.getElementById('opsiCardContainer').classList.toggle('hidden', val !== 'Permainan Kartu');
-                document.getElementById('opsiWordContainer').classList.toggle('hidden', val !== 'Tebak Kata');
-                document.getElementById('opsiSummaryContainer').classList.toggle('hidden', val !== 'Merangkum Materi');
-                document.getElementById('opsiEssayContainer').classList.toggle('hidden', val !== 'Essay');
             });
         }
 
@@ -649,19 +599,23 @@
                 const filteredSiswa = state.siswaList.filter(s => s.kelas === kelas);
                 const tbody = document.getElementById('tabelSiswaBody');
                 tbody.innerHTML = '';
-                filteredSiswa.forEach((s, idx) => {
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-slate-50">
-                            <td class="p-3 text-center">${idx + 1}</td>
-                            <td class="p-3 font-mono">${s.nisn}</td>
-                            <td class="p-3 font-medium text-slate-800">${s.nama}</td>
-                            <td class="p-3">${s.kelas}</td>
-                            <td class="p-3 text-center space-x-2">
-                                <button onclick="deleteSiswa('${s.id}')" class="text-rose-600"><i class="fa-solid fa-trash"></i></button>
-                            </td>
-                        </tr>
-                    `;
-                });
+                if(filteredSiswa.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">Belum ada data siswa untuk kelas ini.</td></tr>`;
+                } else {
+                    filteredSiswa.forEach((s, idx) => {
+                        tbody.innerHTML += `
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 text-center">${idx + 1}</td>
+                                <td class="p-3 font-mono">${s.nisn}</td>
+                                <td class="p-3 font-medium text-slate-800">${s.nama}</td>
+                                <td class="p-3">${s.kelas}</td>
+                                <td class="p-3 text-center space-x-2">
+                                    <button onclick="deleteSiswa('${s.id}')" class="text-rose-600"><i class="fa-solid fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
             }
             updatePendingBadge();
         }
@@ -702,10 +656,13 @@
             const tanya = document.getElementById('modalTanya').value;
             const bobot = parseFloat(document.getElementById('modalBobot').value) || 10;
 
+            if(!tanya.trim()) { alert('Pertanyaan tidak boleh kosong!'); return; }
+
             state.soalList.push({ id, tp, sem, kelas, bab, jenis, tanya, opsi: {}, kunci: 'A', bobot });
             saveToStorage();
             closeSoalModal();
             renderGuru();
+            document.getElementById('modalTanya').value = '';
         }
 
         function deleteSoal(id) {
@@ -716,9 +673,18 @@
             }
         }
 
-        // --- FITUR TAMBAH SISWA YANG DIPERBAIKI ---
-        function openSiswaModal() { document.getElementById('siswaModal').classList.remove('hidden'); }
-        function closeSiswaModal() { document.getElementById('siswaModal').classList.add('hidden'); }
+        // ==========================================
+        // PERBAIKAN: TAMBAH MANUAL & UPLOAD CSV SISWA
+        // ==========================================
+        function openSiswaModal() { 
+            document.getElementById('modalNisn').value = '';
+            document.getElementById('modalNamaSiswa').value = '';
+            document.getElementById('siswaModal').classList.remove('hidden'); 
+        }
+        
+        function closeSiswaModal() { 
+            document.getElementById('siswaModal').classList.add('hidden'); 
+        }
 
         function saveSiswa() {
             const id = 'sw_' + Date.now();
@@ -735,10 +701,7 @@
             saveToStorage();
             closeSiswaModal();
             renderGuru();
-
-            // Kosongkan input form setelah disimpan
-            document.getElementById('modalNisn').value = '';
-            document.getElementById('modalNamaSiswa').value = '';
+            alert('Data siswa berhasil ditambahkan!');
         }
 
         function deleteSiswa(id) {
@@ -749,7 +712,6 @@
             }
         }
 
-        // --- FITUR DOWNLOAD TEMPLATE CSV SISWA ---
         function downloadSiswaTemplate() {
             const csvContent = "data:text/csv;charset=utf-8,NISN,NamaLengkap\n1001,Ahmad Fauzi\n1002,Siti Aminah";
             const encodedUri = encodeURI(csvContent);
@@ -759,6 +721,92 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+
+        function uploadSiswaCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split(/\r\n|\n/);
+                let addedCount = 0;
+                const kelasAktif = document.getElementById('filterKelas').value;
+
+                // Mulai dari i = 1 untuk melewati baris header (NISN, NamaLengkap)
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    const cols = line.split(',');
+                    if (cols.length >= 2) {
+                        const nisn = cols[0].trim();
+                        const nama = cols[1].trim();
+                        if (nisn && nama) {
+                            const id = 'sw_' + Date.now() + '_' + i;
+                            state.siswaList.push({ id, nisn, nama, kelas: kelasAktif });
+                            addedCount++;
+                        }
+                    }
+                }
+
+                saveToStorage();
+                renderGuru();
+                event.target.value = ''; // Reset input file
+                alert(`Berhasil mengimpor ${addedCount} data siswa ke kelas ${kelasAktif}!`);
+            };
+            reader.readAsText(file);
+        }
+
+        function downloadSoalTemplate() {
+            const csvContent = "data:text/csv;charset=utf-8,Pertanyaan,Bobot\nBerapakah hasil dari 2 + 2?,10\nSebutkan rukun Islam!,15";
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "template_bank_soal.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function uploadSoalCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split(/\r\n|\n/);
+                let addedCount = 0;
+                const tp = document.getElementById('filterTp').value;
+                const sem = document.getElementById('filterSem').value;
+                const kelas = document.getElementById('filterKelas').value;
+                const bab = document.getElementById('filterBab').value;
+                const jenis = document.getElementById('filterJenis').value;
+
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+
+                    const cols = line.split(',');
+                    if (cols.length >= 1) {
+                        const tanya = cols[0].trim();
+                        const bobot = cols[1] ? parseFloat(cols[1]) : 10;
+                        if (tanya) {
+                            const id = 's_' + Date.now() + '_' + i;
+                            state.soalList.push({ id, tp, sem, kelas, bab, jenis, tanya, opsi: {}, kunci: 'A', bobot });
+                            addedCount++;
+                        }
+                    }
+                }
+
+                saveToStorage();
+                renderGuru();
+                event.target.value = '';
+                alert(`Berhasil mengimpor ${addedCount} soal ke bank soal!`);
+            };
+            reader.readAsText(file);
         }
 
         function populateSiswaDropdown() {
@@ -773,7 +821,7 @@
             });
         }
 
-        function loginSiswaProcess() {
+function loginSiswaProcess() {
             const id = document.getElementById('siswaLoginNama').value;
             if(!id) { alert('Pilih nama siswa!'); return; }
             state.currentSiswa = state.siswaList.find(s => s.id === id);
@@ -819,7 +867,7 @@
                         </div>
                         <div class="flex items-center justify-between pt-3 border-t">
                             <span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-full font-bold">Siap Dikerjakan</span>
-                            <button onclick='alert("Selamat mengerjakan!")' class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition shadow">Kerjakan</button>
+                            <button onclick='alert("Mulai mengerjakan kuis!")' class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition shadow">Kerjakan</button>
                         </div>
                     </div>
                 `;
