@@ -39,7 +39,6 @@
                 </div>
             </div>
             <div class="flex items-center space-x-3 mt-2 sm:mt-0">
-                <!-- Tombol Mode Demo Cepat -->
                 <button onclick="triggerDemoMode()" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white transition shadow flex items-center gap-1.5">
                     <i class="fa-solid fa-wand-magic-sparkles"></i> Mode Demo Cepat
                 </button>
@@ -271,10 +270,10 @@
             </div>
         </section>
 
-        <!-- ================= PANEL SISWA (NEW MODERN VIEW) ================= -->
+        <!-- ================= PANEL SISWA (DENGAN ANTI-CURANG) ================= -->
         <section id="panelSiswa" class="space-y-6 hidden">
             
-            <!-- 1. Form Login Siswa (Desain Card Elegan dengan Gradien Lembut) -->
+            <!-- 1. Form Login Siswa -->
             <div id="siswaLoginCard" class="max-w-md mx-auto bg-white rounded-3xl shadow-xl border border-indigo-100 overflow-hidden mt-8 transition-all">
                 <div class="bg-gradient-to-r from-indigo-600 to-violet-600 p-6 text-white text-center space-y-2">
                     <div class="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto text-2xl font-bold shadow-inner">
@@ -302,9 +301,8 @@
                 </div>
             </div>
 
-            <!-- 2. Dashboard Ujian Siswa (Modern Grid Cards) -->
+            <!-- 2. Dashboard Ujian Siswa -->
             <div id="siswaDashboard" class="space-y-6 hidden">
-                <!-- Banner Profil Siswa -->
                 <div class="bg-gradient-to-r from-indigo-900 to-indigo-800 text-white p-6 rounded-2xl shadow-md flex flex-wrap justify-between items-center gap-4">
                     <div class="flex items-center space-x-4">
                         <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center text-xl font-bold"><i class="fa-solid fa-user-check"></i></div>
@@ -318,7 +316,6 @@
                     </button>
                 </div>
 
-                <!-- Grid Daftar Kuis Aktif -->
                 <div>
                     <h3 class="font-bold text-slate-700 text-base mb-4 flex items-center gap-2">
                         <i class="fa-solid fa-clipboard-list text-indigo-600"></i> Daftar Ujian & Kuis Tersedia
@@ -327,16 +324,31 @@
                 </div>
             </div>
 
-            <!-- 3. Workspace Pengerjaan Ujian Siswa (Desain Fokus & Bersih) -->
-            <div id="siswaWorkspace" class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 sm:p-8 space-y-6 hidden max-w-4xl mx-auto">
+            <!-- 3. Workspace Pengerjaan Ujian Siswa (Dilengkapi Sistem Anti-Curang Fullscreen & Tab Switch) -->
+            <div id="siswaWorkspace" class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 sm:p-8 space-y-6 hidden max-w-4xl mx-auto relative">
+                
+                <!-- Peringatan Anti-Curang (Banner Kecil di Atas) -->
+                <div id="cheatWarningBanner" class="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-2 rounded-xl text-xs flex items-center justify-between hidden">
+                    <span class="flex items-center gap-2 font-semibold">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-600 text-sm"></i> 
+                        Peringatan Keamanan: Jangan keluar dari mode layar penuh atau beralih tab!
+                    </span>
+                    <span id="cheatCounterText" class="font-bold text-rose-600">Pelanggaran: 0/3</span>
+                </div>
+
                 <div class="flex flex-wrap justify-between items-center border-b border-slate-100 pb-5 gap-4">
                     <div>
                         <span class="text-xs font-bold px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full uppercase tracking-wider" id="wsJenisKuis">Pilihan Ganda</span>
                         <h3 class="font-bold text-slate-800 text-xl mt-2" id="wsJudulKuis">Bab 1 - Evaluasi</h3>
                     </div>
-                    <div class="bg-rose-50 border border-rose-100 px-4 py-2 rounded-2xl text-right">
-                        <div class="text-[10px] font-bold text-rose-500 uppercase tracking-wider">Sisa Waktu Ujian</div>
-                        <div class="font-mono font-extrabold text-rose-600 text-xl" id="wsTimer">--:--</div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="requestFullscreen()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5" title="Masuk Layar Penuh">
+                            <i class="fa-solid fa-expand"></i> Fullscreen
+                        </button>
+                        <div class="bg-rose-50 border border-rose-100 px-4 py-2 rounded-2xl text-right">
+                            <div class="text-[10px] font-bold text-rose-500 uppercase tracking-wider">Sisa Waktu</div>
+                            <div class="font-mono font-extrabold text-rose-600 text-xl" id="wsTimer">--:--</div>
+                        </div>
                     </div>
                 </div>
 
@@ -408,7 +420,6 @@
                     <textarea id="modalTanya" rows="3" class="w-full border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500" placeholder="Tulis instruksi atau pertanyaan..."></textarea>
                 </div>
                 
-                <!-- Opsi Pilihan Ganda -->
                 <div id="modalOpsiContainer" class="space-y-2">
                     <label class="block text-xs font-semibold text-slate-600 uppercase">Pilihan Ganda & Kunci</label>
                     <div class="flex items-center space-x-2"><input type="text" id="optA" class="w-full border rounded p-2 text-sm" placeholder="Opsi A"><label class="text-xs font-bold"><input type="radio" name="kunciMC" value="A"> Kunci</label></div>
@@ -417,10 +428,9 @@
                     <div class="flex items-center space-x-2"><input type="text" id="optD" class="w-full border rounded p-2 text-sm" placeholder="Opsi D"><label class="text-xs font-bold"><input type="radio" name="kunciMC" value="D"> Kunci</label></div>
                 </div>
 
-                <!-- Kunci Jawaban Non-PG -->
                 <div id="modalKunciContainer" class="hidden">
                     <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Kunci Jawaban Benar</label>
-                    <input type="text" id="modalKunci" class="w-full border rounded-lg p-2.5 text-sm" placeholder="Kunci jawaban (misal: ALGORITMA atau RAM:Memori)">
+                    <input type="text" id="modalKunci" class="w-full border rounded-lg p-2.5 text-sm" placeholder="Kunci jawaban...">
                 </div>
 
                 <div>
@@ -460,7 +470,7 @@
         </div>
     </div>
 
-    <!-- Script Aplikasi Utama -->
+    <!-- Script Aplikasi Utama dengan Sistem Anti-Curang -->
     <script>
         let state = {
             role: 'guru',
@@ -482,7 +492,8 @@
             },
             nilaiList: [],
             currentSiswa: null,
-            timerInterval: null
+            timerInterval: null,
+            cheatViolationCount: 0 // Penghitung pelanggaran anti-curang
         };
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -492,11 +503,14 @@
             renderGuru();
             updatePendingBadge();
             
-            // Cek parameter URL untuk mode demo otomatis (jika dibuka dari iframe blog)
             const urlParams = new URLSearchParams(window.location.search);
             if(urlParams.get('demo') === 'true') {
                 triggerDemoMode();
             }
+
+            // Daftarkan event listener anti-curang (Deteksi pindah tab / minimize)
+            document.addEventListener("visibilitychange", handleVisibilityChange);
+            window.addEventListener("blur", handleWindowBlur);
         });
 
         function saveToStorage() {
@@ -530,6 +544,50 @@
                 }
             }, 100);
         }
+
+        // ================= SISTEM ANTI-CURANG (FULLSCREEN & TAB SWITCH) =================
+        function requestFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => console.log(err));
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+        }
+
+        function handleVisibilityChange() {
+            if (document.hidden && !document.getElementById('siswaWorkspace').classList.contains('hidden')) {
+                registerCheatViolation("Anda terdeteksi meninggalkan halaman ujian (Pindah Tab / Minimize)!");
+            }
+        }
+
+        function handleWindowBlur() {
+            if (!document.getElementById('siswaWorkspace').classList.contains('hidden')) {
+                registerCheatViolation("Jendela ujian kehilangan fokus (Membuka aplikasi lain)!");
+            }
+        }
+
+        function registerCheatViolation(reason) {
+            state.cheatViolationCount++;
+            const maxViolation = 3;
+            
+            const banner = document.getElementById('cheatWarningBanner');
+            const counterText = document.getElementById('cheatCounterText');
+            if(banner && counterText) {
+                banner.classList.remove('hidden');
+                counterText.innerText = `Pelanggaran: ${state.cheatViolationCount}/${maxViolation}`;
+            }
+
+            if(state.cheatViolationCount >= maxViolation) {
+                alert(`🚨 Ujian Anda Dibatalkan Otomatis!\nAnda telah melanggar aturan anti-curang sebanyak ${maxViolation} kali.`);
+                submitKuisSiswa(true); // Auto-submit dengan nilai 0 atau hukuman
+            } else {
+                alert(`⚠️ PERINGATAN PELANGGARAN (${state.cheatViolationCount}/${maxViolation})\n${reason}\nJika mencapai 3 kali, ujian akan otomatis dikirim!`);
+            }
+        }
+        // ==============================================================================
 
         function renderMasterDropdowns() {
             document.getElementById('filterTp').innerHTML = state.master.tp.map(t => `<option value="${t}">${t}</option>`).join('');
@@ -812,7 +870,6 @@
                 const firstRadio = document.querySelector('input[name="kunciMC"]');
                 if(firstRadio) firstRadio.checked = true;
             }
-            
             document.getElementById('soalModal').classList.remove('hidden'); 
         }
 
@@ -1044,6 +1101,13 @@
         }
 
         function mulaiUjianSiswa(tp, sem, kelas, bab, jenis, durasiMenit) {
+            // Aktifkan mode layar penuh (Fullscreen) secara otomatis saat ujian dimulai
+            requestFullscreen();
+
+            // Reset hitungan pelanggaran untuk sesi baru
+            state.cheatViolationCount = 0;
+            document.getElementById('cheatWarningBanner').classList.add('hidden');
+
             document.getElementById('siswaDashboard').classList.add('hidden');
             document.getElementById('siswaWorkspace').classList.remove('hidden');
             document.getElementById('wsJenisKuis').innerText = jenis;
@@ -1123,7 +1187,7 @@
             document.getElementById('siswaDashboard').classList.remove('hidden');
         }
 
-        function submitKuisSiswa() {
+        function submitKuisSiswa(isAutoSubmit = false) {
             if(state.timerInterval) clearInterval(state.timerInterval);
 
             const jenis = document.getElementById('wsJenisKuis').innerText;
@@ -1134,40 +1198,42 @@
             let detailJawaban = {};
             let adaEssay = (jenis === 'Essay' || jenis === 'Merangkum Materi');
 
-            const items = document.querySelectorAll('#wsContentArea > div');
-            items.forEach(item => {
-                const soalId = item.getAttribute('data-soal-id');
-                const kunci = item.getAttribute('data-kunci');
-                const jns = item.getAttribute('data-jenis');
-                
-                const soalObj = state.soalList.find(s => s.id === soalId);
-                const bobot = soalObj ? (soalObj.bobot || 10) : 10;
-                totalBobot += bobot;
+            if(!isAutoSubmit) {
+                const items = document.querySelectorAll('#wsContentArea > div');
+                items.forEach(item => {
+                    const soalId = item.getAttribute('data-soal-id');
+                    const kunci = item.getAttribute('data-kunci');
+                    const jns = item.getAttribute('data-jenis');
+                    
+                    const soalObj = state.soalList.find(s => s.id === soalId);
+                    const bobot = soalObj ? (soalObj.bobot || 10) : 10;
+                    totalBobot += bobot;
 
-                if(jns === 'Pilihan Ganda') {
-                    const sel = item.querySelector('input[type="radio"]:checked');
-                    const val = sel ? sel.value : '-';
-                    detailJawaban[soalId] = val;
-                    if(sel && val.trim().toUpperCase() === kunci.trim().toUpperCase()) {
-                        totalSkor += bobot;
+                    if(jns === 'Pilihan Ganda') {
+                        const sel = item.querySelector('input[type="radio"]:checked');
+                        const val = sel ? sel.value : '-';
+                        detailJawaban[soalId] = val;
+                        if(sel && val.trim().toUpperCase() === kunci.trim().toUpperCase()) {
+                            totalSkor += bobot;
+                        }
+                    } else if(jns === 'Anagram' || jns === 'Card Matching') {
+                        const inp = item.querySelector('.siswa-ans');
+                        const val = inp ? inp.value.trim() : '-';
+                        detailJawaban[soalId] = val;
+                        if(val.toUpperCase() === kunci.trim().toUpperCase()) {
+                            totalSkor += bobot;
+                        }
+                    } else {
+                        const inp = item.querySelector('.siswa-ans');
+                        const val = inp ? inp.value.trim() : '-';
+                        detailJawaban[soalId] = val;
                     }
-                } else if(jns === 'Anagram' || jns === 'Card Matching') {
-                    const inp = item.querySelector('.siswa-ans');
-                    const val = inp ? inp.value.trim() : '-';
-                    detailJawaban[soalId] = val;
-                    if(val.toUpperCase() === kunci.trim().toUpperCase()) {
-                        totalSkor += bobot;
-                    }
-                } else {
-                    const inp = item.querySelector('.siswa-ans');
-                    const val = inp ? inp.value.trim() : '-';
-                    detailJawaban[soalId] = val;
-                }
-            });
+                });
+            }
 
-            let nilaiAkhir = totalBobot > 0 ? Math.round((totalSkor / totalBobot) * 100) : 0;
-            let statusNilai = adaEssay ? 'Menunggu Koreksi' : 'Selesai';
-            if(adaEssay) nilaiAkhir = 0;
+            let nilaiAkhir = (isAutoSubmit || totalBobot === 0) ? 0 : Math.round((totalSkor / totalBobot) * 100);
+            let statusNilai = (isAutoSubmit || adaEssay) ? (isAutoSubmit ? 'Diskors / Curang' : 'Menunggu Koreksi') : 'Selesai';
+            if(adaEssay && !isAutoSubmit) nilaiAkhir = 0;
 
             const entry = {
                 id: 'n_' + Date.now(),
@@ -1183,7 +1249,12 @@
             state.nilaiList.push(entry);
             saveToStorage();
 
-            alert(adaEssay ? 'Ujian berhasil dikirim! Menunggu koreksi nilai dari guru.' : `Ujian selesai! Nilai Anda: ${nilaiAkhir}`);
+            if(isAutoSubmit) {
+                alert('Ujian Anda dihentikan dan dikirim otomatis karena terdeteksi indikasi kecurangan!');
+            } else {
+                alert(adaEssay ? 'Ujian berhasil dikirim! Menunggu koreksi nilai dari guru.' : `Ujian selesai! Nilai Anda: ${nilaiAkhir}`);
+            }
+
             tutupWorkspace();
             renderSiswaDashboard();
         }
