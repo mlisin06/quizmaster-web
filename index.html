@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aplikasi Ujian & Kuis Siswa Dynamic Pro</title>
-    <!-- Tailwind CSS CDN dengan Fallback/Pengaman -->
+    <!-- Tailwind CSS CDN dengan Fallback -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // Fallback jika CDN utama melambat/gagal
         if (typeof tailwind === 'undefined') {
             document.write('<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"><\/script>');
         }
@@ -558,6 +557,7 @@
             document.querySelectorAll('.guru-content').forEach(c => c.classList.add('hidden'));
             document.getElementById(tabId).classList.remove('hidden');
             renderGuru();
+            if(tabId === 'tabRekap') renderRekapGuru();
         }
 
         function renderGuru() {
@@ -625,6 +625,63 @@
                 }
             }
             updatePendingBadge();
+        }
+
+        function renderRekapGuru() {
+            const tbody = document.getElementById('tabelRekapBody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+
+            const kelasAktif = document.getElementById('filterKelas').value;
+            const filteredSiswa = state.siswaList.filter(s => s.kelas === kelasAktif);
+
+            if(filteredSiswa.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-slate-400">Belum ada data siswa untuk kelas ini.</td></tr>`;
+                return;
+            }
+
+            filteredSiswa.forEach((siswa, idx) => {
+                const getNilaiByType = (jenis) => {
+                    const found = state.nilaiList.find(n => n.siswaId === siswa.id && n.jenis === jenis);
+                    return found ? (found.status === 'Menunggu Koreksi' ? 'Pending' : found.nilai) : '-';
+                };
+
+                const nPg = getNilaiByType('Pilihan Ganda');
+                const nCard = getNilaiByType('Permainan Kartu');
+                const nWord = getNilaiByType('Tebak Kata');
+                const nSum = getNilaiByType('Merangkum Materi');
+                const nEssay = getNilaiByType('Essay');
+
+                const angkaList = [nPg, nCard, nWord, nSum, nEssay].filter(v => typeof v === 'number');
+                const avg = angkaList.length > 0 ? Math.round(angkaList.reduce((a, b) => a + b, 0) / angkaList.length) : '-';
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 text-center">${idx + 1}</td>
+                        <td class="p-3 font-mono">${siswa.nisn}</td>
+                        <td class="p-3 font-medium text-slate-800">${siswa.nama}</td>
+                        <td class="p-3">${siswa.kelas}</td>
+                        <td class="p-3 text-center">${nPg}</td>
+                        <td class="p-3 text-center">${nCard}</td>
+                        <td class="p-3 text-center">${nWord}</td>
+                        <td class="p-3 text-center">${nSum}</td>
+                        <td class="p-3 text-center">${nEssay}</td>
+                        <td class="p-3 text-center font-bold text-indigo-700">${avg}</td>
+                        <td class="p-3 text-center">
+                            <button onclick="resetNilaiSiswa('${siswa.id}')" class="text-rose-600 text-xs"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function resetNilaiSiswa(siswaId) {
+            if(confirm('Reset nilai siswa ini?')) {
+                state.nilaiList = state.nilaiList.filter(n => n.siswaId !== siswaId);
+                saveToStorage();
+                renderRekapGuru();
+                updatePendingBadge();
+            }
         }
 
         function updateQuizSettings() {
@@ -908,17 +965,26 @@
             }
 
             soalPilihan.forEach((s, idx) => {
-                contentArea.innerHTML += `
-                    <div class="p-4 bg-slate-50 rounded-xl border space-y-2">
-                        <div class="font-semibold text-slate-800 text-sm">Soal ${idx + 1}: ${s.tanya}</div>
-                        <div class="space-y-1 pl-2">
-                            <label class="block text-xs text-slate-600"><input type="radio" name="jawaban_${s.id}" value="A" class="mr-2"> A. ${s.opsi?.A || 'Pilihan A'}</label>
-                            <label class="block text-xs text-slate-600"><input type="radio" name="jawaban_${s.id}" value="B" class="mr-2"> B. ${s.opsi?.B || 'Pilihan B'}</label>
-                            <label class="block text-xs text-slate-600"><input type="radio" name="jawaban_${s.id}" value="C" class="mr-2"> C. ${s.opsi?.C || 'Pilihan C'}</label>
-                            <label class="block text-xs text-slate-600"><input type="radio" name="jawaban_${s.id}" value="D" class="mr-2"> D. ${s.opsi?.D || 'Pilihan D'}</label>
+                if(jenis === 'Pilihan Ganda') {
+                    contentArea.innerHTML += `
+                        <div class="p-4 bg-slate-50 rounded-xl border space-y-2">
+                            <div class="font-semibold text-slate-800 text-sm">Soal ${idx + 1}: ${s.tanya}</div>
+                            <div class="space-y-1 pl-2">
+                                <label class="block text-xs text-slate-600 cursor-pointer"><input type="radio" name="jawaban_${s.id}" value="A" class="mr-2"> A. ${s.opsi?.A || 'Pilihan A'}</label>
+                                <label class="block text-xs text-slate-600 cursor-pointer"><input type="radio" name="jawaban_${s.id}" value="B" class="mr-2"> B. ${s.opsi?.B || 'Pilihan B'}</label>
+                                <label class="block text-xs text-slate-600 cursor-pointer"><input type="radio" name="jawaban_${s.id}" value="C" class="mr-2"> C. ${s.opsi?.C || 'Pilihan C'}</label>
+                                <label class="block text-xs text-slate-600 cursor-pointer"><input type="radio" name="jawaban_${s.id}" value="D" class="mr-2"> D. ${s.opsi?.D || 'Pilihan D'}</label>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                } else {
+                    contentArea.innerHTML += `
+                        <div class="p-4 bg-slate-50 rounded-xl border space-y-2">
+                            <div class="font-semibold text-slate-800 text-sm">Soal ${idx + 1}: ${s.tanya}</div>
+                            <textarea id="input_essay_${s.id}" rows="4" class="w-full border rounded-lg p-2.5 text-sm bg-white" placeholder="Tulis jawaban atau rangkuman Anda di sini..."></textarea>
+                        </div>
+                    `;
+                }
             });
 
             let totalDetik = durasiMenit * 60;
@@ -946,8 +1012,62 @@
 
         function submitKuisSiswa() {
             if(state.timerInterval) clearInterval(state.timerInterval);
-            alert('Jawaban ujian berhasil dikirim!');
+
+            const jenis = document.getElementById('wsJenisKuis').innerText;
+            const bab = document.getElementById('wsJudulKuis').innerText;
+            const tp = document.getElementById('filterTp').value;
+            const sem = document.getElementById('filterSem').value;
+            const kelas = state.currentSiswa.kelas;
+
+            const soalPilihan = state.soalList.filter(s => 
+                s.tp === tp && s.sem === sem && s.kelas === kelas && s.bab === bab && s.jenis === jenis
+            );
+
+            let totalSkor = 0;
+            let totalBobot = 0;
+            let detailJawabanSiswa = {};
+            let adaEssay = (jenis === 'Essay' || jenis === 'Merangkum Materi');
+
+            soalPilihan.forEach(s => {
+                totalBobot += (s.bobot || 10);
+                if(jenis === 'Pilihan Ganda') {
+                    const selectedOpt = document.querySelector(`input[name="jawaban_${s.id}"]:checked`);
+                    const val = selectedOpt ? selectedOpt.value : '-';
+                    detailJawabanSiswa[s.id] = val;
+                    if(selectedOpt && selectedOpt.value === s.kunci) {
+                        totalSkor += (s.bobot || 10);
+                    }
+                } else {
+                    const textVal = document.getElementById(`input_essay_${s.id}`)?.value || '-';
+                    detailJawabanSiswa[s.id] = textVal;
+                }
+            });
+
+            let nilaiAkhir = totalBobot > 0 ? Math.round((totalSkor / totalBobot) * 100) : 0;
+            let statusNilai = adaEssay ? 'Menunggu Koreksi' : 'Selesai';
+            if(adaEssay) nilaiAkhir = 0;
+
+            const nilaiEntry = {
+                id: 'n_' + Date.now(),
+                siswaId: state.currentSiswa.id,
+                nisn: state.currentSiswa.nisn,
+                nama: state.currentSiswa.nama,
+                kelas: state.currentSiswa.kelas,
+                tp, sem, bab, jenis,
+                nilai: nilaiAkhir,
+                status: statusNilai,
+                jawaban: detailJawabanSiswa
+            };
+
+            state.nilaiList = state.nilaiList.filter(n => !(n.siswaId === state.currentSiswa.id && n.bab === bab && n.jenis === jenis));
+            state.nilaiList.push(nilaiEntry);
+
+            saveToStorage();
+            
+            alert(adaEssay ? 'Ujian berhasil dikirim! Menunggu koreksi nilai dari Guru.' : `Ujian selesai! Nilai Anda: ${nilaiAkhir}`);
             tutupWorkspace();
+            renderRekapGuru();
+            updatePendingBadge();
         }
     </script>
 </body>
