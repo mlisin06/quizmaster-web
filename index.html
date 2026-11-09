@@ -807,8 +807,6 @@
             if(!tbody) return;
             tbody.innerHTML = '';
 
-            const tpAktif = document.getElementById('filterTp').value;
-            const semAktif = document.getElementById('filterSem').value;
             const kelasAktif = document.getElementById('filterKelas').value;
             const babAktif = document.getElementById('filterBab').value;
 
@@ -820,7 +818,7 @@
             }
 
             filteredSiswa.forEach((siswa, idx) => {
-                // Pencocokan fleksibel berdasarkan siswa, bab, dan jenis kuis
+                // Pencocokan fleksibel berdasarkan siswa dan bab
                 const nilaiSiswa = state.nilaiList.filter(n => {
                     const matchSiswa = (n.siswaId === siswa.id || n.siswaId === siswa.nisn || n.nisn == siswa.nisn);
                     const matchBab = n.bab ? n.bab.trim().toLowerCase() === babAktif.trim().toLowerCase() : true;
@@ -1623,6 +1621,7 @@
             const entry = {
                 id: 'n_' + Date.now(),
                 siswaId: state.currentSiswa.id,
+                nisn: state.currentSiswa.nisn,
                 tp: document.getElementById('filterTp').value,     
                 sem: document.getElementById('filterSem').value,   
                 jenis: jenis,
