@@ -832,7 +832,7 @@
                     const found = nilaiSiswa.find(n => n.jenis && n.jenis.toLowerCase().includes(keyword.toLowerCase()));
                     if (!found) return '-';
                     if (found.status === 'Menunggu Koreksi') return 'Pending';
-                    return (found.nilai !== null && found.nilai !== undefined && !isNaN(found.nilai)) ? found.nilai : '-';
+                    return (found.nilai !== null && found.nilai !== undefined && !isNaN(found.nilai)) ? Number(found.nilai) : '-';
                 };
 
                 const nPg = getNilaiByType('Pilihan Ganda');
@@ -892,7 +892,7 @@
                     const found = nilaiSiswa.find(n => n.jenis && n.jenis.toLowerCase().includes(keyword.toLowerCase()));
                     if (!found) return '-';
                     if (found.status === 'Menunggu Koreksi') return 'Pending';
-                    return (found.nilai !== null && found.nilai !== undefined && !isNaN(found.nilai)) ? found.nilai : '-';
+                    return (found.nilai !== null && found.nilai !== undefined && !isNaN(found.nilai)) ? Number(found.nilai) : '-';
                 };
                 const nPg = getVal('Pilihan Ganda');
                 const nAn = getVal('Anagram');
@@ -969,7 +969,7 @@
 
             const entry = state.nilaiList.find(n => n.id === id);
             if(entry) {
-                entry.nilai = val;
+                entry.nilai = Number(val);
                 entry.status = 'Selesai';
                 saveToStorage();
                 renderKoreksiGuru();
@@ -1341,7 +1341,7 @@
                 return;
             }
 
-            if(jenis === 'Card Matching') {
+            if(jenis.includes('Card Matching') || jenis.toLowerCase().includes('card')) {
                 matchedPairsCount = 0;
                 let kartuArray = [];
                 soalPilihan.forEach((s) => {
