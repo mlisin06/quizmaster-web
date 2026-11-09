@@ -801,7 +801,7 @@
             updatePendingBadge();
         }
 
-        // FUNGSI REKAP NILAI DENGAN FILTER LENGKAP & ANTI-NULL
+        // FUNGSI REKAP NILAI DENGAN PENCARIAN FLEKSIBEL BERDASARKAN SISWA & BAB
         function renderRekapGuru() {
             const tbody = document.getElementById('tabelRekapBody');
             if(!tbody) return;
@@ -820,12 +820,11 @@
             }
 
             filteredSiswa.forEach((siswa, idx) => {
+                // Pencocokan fleksibel berdasarkan siswa, bab, dan jenis kuis
                 const nilaiSiswa = state.nilaiList.filter(n => {
                     const matchSiswa = (n.siswaId === siswa.id || n.siswaId === siswa.nisn || n.nisn == siswa.nisn);
-                    const matchTp = n.tp ? n.tp === tpAktif : true;
-                    const matchSem = n.sem ? n.sem === semAktif : true;
-                    const matchBab = n.bab ? n.bab === babAktif : true;
-                    return matchSiswa && matchTp && matchSem && matchBab;
+                    const matchBab = n.bab ? n.bab.trim().toLowerCase() === babAktif.trim().toLowerCase() : true;
+                    return matchSiswa && matchBab;
                 });
 
                 const getNilaiByType = (keyword) => {
@@ -882,10 +881,8 @@
             filteredSiswa.forEach((siswa, idx) => {
                 const nilaiSiswa = state.nilaiList.filter(n => {
                     const matchSiswa = (n.siswaId === siswa.id || n.siswaId === siswa.nisn || n.nisn == siswa.nisn);
-                    const matchTp = n.tp ? n.tp === tpAktif : true;
-                    const matchSem = n.sem ? n.sem === semAktif : true;
-                    const matchBab = n.bab ? n.bab === babAktif : true;
-                    return matchSiswa && matchTp && matchSem && matchBab;
+                    const matchBab = n.bab ? n.bab.trim().toLowerCase() === babAktif.trim().toLowerCase() : true;
+                    return matchSiswa && matchBab;
                 });
 
                 const getVal = (keyword) => {
@@ -1635,6 +1632,7 @@
                 jawaban: detailJawaban
             };
 
+            // Hapus nilai lama dengan siswa, bab, dan jenis yang sama, lalu masukkan yang baru
             state.nilaiList = state.nilaiList.filter(n => !(n.siswaId === state.currentSiswa.id && n.bab === bab && n.jenis === jenis));
             state.nilaiList.push(entry);
             saveToStorage();
