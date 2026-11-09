@@ -801,7 +801,7 @@
             updatePendingBadge();
         }
 
-        // FUNGSI REKAP NILAI DENGAN FILTER LENGKAP (TP, SEMESTER, KELAS, BAB)
+        // FUNGSI REKAP NILAI DENGAN FILTER LENGKAP & ANTI-NULL
         function renderRekapGuru() {
             const tbody = document.getElementById('tabelRekapBody');
             if(!tbody) return;
@@ -830,7 +830,9 @@
 
                 const getNilaiByType = (keyword) => {
                     const found = nilaiSiswa.find(n => n.jenis && n.jenis.toLowerCase().includes(keyword.toLowerCase()));
-                    return found ? (found.status === 'Menunggu Koreksi' ? 'Pending' : found.nilai) : '-';
+                    if (!found) return '-';
+                    if (found.status === 'Menunggu Koreksi') return 'Pending';
+                    return (found.nilai !== null && found.nilai !== undefined && !isNaN(found.nilai)) ? found.nilai : '-';
                 };
 
                 const nPg = getNilaiByType('Pilihan Ganda');
@@ -888,7 +890,9 @@
 
                 const getVal = (keyword) => {
                     const found = nilaiSiswa.find(n => n.jenis && n.jenis.toLowerCase().includes(keyword.toLowerCase()));
-                    return found ? (found.status === 'Menunggu Koreksi' ? 'Pending' : found.nilai) : '-';
+                    if (!found) return '-';
+                    if (found.status === 'Menunggu Koreksi') return 'Pending';
+                    return (found.nilai !== null && found.nilai !== undefined && !isNaN(found.nilai)) ? found.nilai : '-';
                 };
                 const nPg = getVal('Pilihan Ganda');
                 const nAn = getVal('Anagram');
@@ -1338,7 +1342,7 @@
             }
 
             if(jenis === 'Card Matching') {
-                // Logika Permainan Buka-Tutup Kartu Berpasangan 3D Interaktif
+                matchedPairsCount = 0;
                 let kartuArray = [];
                 soalPilihan.forEach((s) => {
                     kartuArray.push({ id: s.id, tipe: 'soal', teks: s.tanya, pairId: s.id });
@@ -1537,8 +1541,8 @@
             if(!isAutoSubmit) {
                 if(jenis.includes('Card Matching')) {
                     const totalPairs = document.querySelectorAll('#cardMatchingGrid > div').length / 2;
-                    totalBobot = totalPairs * 10;
-                    totalSkor = matchedPairsCount * 10;
+                    totalBobot = totalPairs * 15;
+                    totalSkor = matchedPairsCount * 15;
                     terjawabCount = matchedPairsCount;
                     totalSoalCount = totalPairs;
                     detailJawaban['card_score'] = `${matchedPairsCount}/${totalPairs} Berhasil Dicocokkan`;
@@ -1609,7 +1613,14 @@
                 }
             }
 
-            let nilaiAkhir = (isAutoSubmit || totalBobot === 0 || adaEssay) ? (jenis.includes('Card Matching') ? Math.round((totalSkor / totalBobot) * 100) : 0) : Math.round((totalSkor / totalBobot) * 100);
+            let nilaiAkhir = 0;
+            if (jenis.includes('Card Matching')) {
+                let totalPairs = document.querySelectorAll('#cardMatchingGrid > div').length / 2;
+                nilaiAkhir = totalPairs > 0 ? Math.round((matchedPairsCount / totalPairs) * 100) : 0;
+            } else if (!isAutoSubmit && !adaEssay && totalBobot > 0) {
+                nilaiAkhir = Math.round((totalSkor / totalBobot) * 100);
+            }
+
             let statusNilai = (isAutoSubmit || adaEssay) ? (isAutoSubmit ? 'Diskors / Curang' : 'Menunggu Koreksi') : 'Selesai';
 
             const entry = {
