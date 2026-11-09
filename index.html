@@ -1539,9 +1539,9 @@
             let adaEssay = jenisLower.includes('essay') || jenisLower.includes('rangkum');
 
             if(!isAutoSubmit) {
-                if(jenis.includes('Card Matching')) {
+                if(jenis.includes('Card Matching') || jenisLower.includes('card')) {
                     const totalPairs = document.querySelectorAll('#cardMatchingGrid > div').length / 2;
-                    totalBobot = totalPairs * 15;
+                    totalBobot = totalPairs > 0 ? totalPairs * 15 : 100;
                     totalSkor = matchedPairsCount * 15;
                     terjawabCount = matchedPairsCount;
                     totalSoalCount = totalPairs;
@@ -1614,7 +1614,7 @@
             }
 
             let nilaiAkhir = 0;
-            if (jenis.includes('Card Matching')) {
+            if (jenis.includes('Card Matching') || jenis.toLowerCase().includes('card')) {
                 let totalPairs = document.querySelectorAll('#cardMatchingGrid > div').length / 2;
                 nilaiAkhir = totalPairs > 0 ? Math.round((matchedPairsCount / totalPairs) * 100) : 0;
             } else if (!isAutoSubmit && !adaEssay && totalBobot > 0) {
@@ -1630,7 +1630,7 @@
                 sem: document.getElementById('filterSem').value,   
                 jenis: jenis,
                 bab: bab,
-                nilai: nilaiAkhir,
+                nilai: Number(nilaiAkhir),
                 status: statusNilai,
                 jawaban: detailJawaban
             };
