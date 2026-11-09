@@ -1869,6 +1869,42 @@ function kirimTugasSiswa(siswaId, jenisTugas, teksJawaban) {
                 alert('Data nilai siswa tidak ditemukan.');
             }
         }
+        // ==========================================
+// SOLUSI PASTI KOREKSI ESSAY & RANGKUMAN
+// ==========================================
+window.addEventListener('DOMContentLoaded', () => {
+    // Memantau setiap kali tombol kirim ujian ditekan oleh siswa
+    const originalEksekusi = window.eksekusiKirimUjian;
+    if (typeof originalEksekusi === 'function') {
+        window.eksekusiKirimUjian = function(isAutoSubmit = false) {
+            originalEksekusi(isAutoSubmit);
+            
+            // Tangkap teks jawaban essay/rangkuman dari layar siswa
+            const jenisEl = document.getElementById('wsJenisKuis');
+            const babEl = document.getElementById('wsJudulKuis');
+            
+            if (jenisEl && babEl && state.currentSiswa) {
+                const jenis = jenisEl.innerText;
+                const bab = babEl.innerText;
+                
+                if (jenis.toLowerCase().includes('essay') || jenis.toLowerCase().includes('rangkum')) {
+                    const textInp = document.querySelector('#wsContentArea textarea, #wsContentArea input[type="text"]');
+                    const teksJawaban = textInp ? textInp.value.trim() : "Tidak ada jawaban tertulis";
+
+                    // Perbarui entri nilai terakhir agar statusnya pasti 'Menunggu Koreksi'
+                    if (state.nilaiList.length > 0) {
+                        const latest = state.nilaiList[state.nilaiList.length - 1];
+                        if (latest && latest.siswaId === state.currentSiswa.id) {
+                            latest.status = 'Menunggu Koreksi';
+                            latest.jawaban = teksJawaban;
+                            saveToStorage();
+                        }
+                    }
+                }
+            }
+        };
+    }
+});
     </script>
 </body>
 </html>
