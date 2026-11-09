@@ -1787,7 +1787,88 @@ function kirimTugasSiswa(siswaId, jenisTugas, teksJawaban) {
 
     alert("Jawaban berhasil dikirim ke guru untuk dikoreksi!");
 }
+// 1. Pastikan saat tab koreksi diklik, tabelnya langsung merender data
+        function switchGuruTab(tabId) {
+            state.activeGuruTab = tabId;
+            document.querySelectorAll('.guru-tab').forEach(btn => {
+                btn.className = btn.dataset.tab === tabId ? 'guru-tab px-4 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white' : 'guru-tab px-4 py-2 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200';
+            });
+            document.querySelectorAll('.guru-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+            renderGuru();
+            if(tabId === 'tabRekap') renderRekapGuru();
+            if(tabId === 'tabKoreksi') renderKoreksiGuru(); // <-- Ini memanggil pemuat tabel koreksi
+        }
 
+        // 2. Fungsi Perender Tabel Koreksi Guru (Pastikan fungsi ini ada di script Anda)
+        function renderKoreksiGuru() {
+            const tbody = document.getElementById('tabelKoreksiBody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            
+            // Ambil data nilai yang statusnya 'Menunggu Koreksi'
+            const pendingList = state.nilaiList.filter(n => n.status === 'Menunggu Koreksi');
+            
+            if(pendingList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">Tidak ada jawaban essay/rangkuman yang perlu dikoreksi.</td></tr>`;
+                updatePendingBadge();
+                return;
+            }
+
+            pendingList.forEach(n => {
+                const siswa = state.siswaList.find(s => s.id === n.siswaId) || { nama: 'Siswa (ID: ' + n.siswaId + ')' };
+                
+                // Ambil teks jawaban siswa
+                let teksJawaban = '';
+                if(typeof n.jawaban === 'object') {
+                    teksJawaban = Object.values(n.jawaban).join(' | ');
+                } else {
+                    teksJawaban = n.jawaban || '-';
+                }
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 font-medium text-slate-800">${siswa.nama}</td>
+                        <td class="p-3 text-xs">${n.bab} (${n.jenis})</td>
+                        <td class="p-3 text-xs font-mono bg-slate-50 rounded max-w-xs truncate" title="${teksJawaban}">${teksJawaban}</td>
+                        <td class="p-3 text-center"><span class="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-full font-semibold">Pending</span></td>
+                        <td class="p-3 text-center">
+                            <input type="number" id="input_nilai_${n.id}" min="0" max="100" placeholder="0-100" class="w-16 border rounded p-1 text-xs mr-2 text-center">
+                            <button onclick="simpanKoreksi('${n.id}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-xs font-medium transition">Simpan</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            updatePendingBadge();
+        }
+
+        // 3. Fungsi Menyimpan Nilai Koreksi Guru ke Rekap
+        function simpanKoreksi(id) {
+            const inputEl = document.getElementById(`input_nilai_${id}`);
+            if(!inputEl || inputEl.value === "") {
+                alert('Masukkan angka nilai terlebih dahulu (0-100)!');
+                return;
+            }
+
+            const val = parseInt(inputEl.value);
+            if(isNaN(val) || val < 0 || val > 100) { 
+                alert('Masukkan nilai valid antara 0 sampai 100!'); 
+                return; 
+            }
+
+            const entry = state.nilaiList.find(n => n.id === id);
+            if(entry) {
+                entry.nilai = val;
+                entry.status = 'Selesai';
+                saveToStorage();
+                renderKoreksiGuru();
+                updatePendingBadge();
+                if(typeof renderRekapGuru === 'function') renderRekapGuru();
+                alert('Nilai koreksi berhasil disimpan dan otomatis masuk ke Rekap Nilai!');
+            } else {
+                alert('Data nilai siswa tidak ditemukan.');
+            }
+        }
     </script>
 </body>
 </html>
