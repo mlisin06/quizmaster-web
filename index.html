@@ -222,7 +222,7 @@
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-4">
                     <div>
                         <h3 class="font-bold text-slate-800 text-base">Rekapitulasi Nilai Siswa</h3>
-                        <p class="text-xs text-slate-500">Nilai rata-rata dinamis dihitung otomatis hanya dari kuis yang pernah dikerjakan.</p>
+                        <p class="text-xs text-slate-500">Nilai disaring otomatis berdasarkan kombinasi Tahun Pelajaran, Semester, Kelas, Bab, dan Jenis Kuis di atas.</p>
                     </div>
                     <button onclick="exportRekapCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"><i class="fa-solid fa-file-excel mr-2"></i>Ekspor CSV Profesional</button>
                 </div>
@@ -399,7 +399,7 @@
         </section>
     </main>
 
-    <!-- MODAL KONFIRMASI KIRIM UJIAN (POIN 1) -->
+    <!-- MODAL KONFIRMASI KIRIM UJIAN -->
     <div id="modalKonfirmasiKirim" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden p-6 text-center space-y-4">
             <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto text-2xl font-bold">
@@ -547,6 +547,7 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             loadFromStorage();
+            loadSavedFirebaseConfig();
             renderMasterDropdowns();
             setupFilterListeners();
             renderGuru();
@@ -685,7 +686,12 @@
 
         function setupFilterListeners() {
             ['filterTp', 'filterSem', 'filterKelas', 'filterBab', 'filterJenis'].forEach(id => {
-                document.getElementById(id).addEventListener('change', renderGuru);
+                document.getElementById(id).addEventListener('change', () => {
+                    renderGuru();
+                    if(state.activeGuruTab === 'tabRekap') {
+                        renderRekapGuru();
+                    }
+                });
             });
         }
 
@@ -789,75 +795,94 @@
             updatePendingBadge();
         }
 
-     function renderRekapGuru() {
-    const tbody = document.getElementById('tabelRekapBody');
-    if(!tbody) return;
-    tbody.innerHTML = '';
+        // FUNGSI REKAP NILAI DENGAN FILTER LENGKAP (TP, SEMESTER, KELAS, BAB)
+        function renderRekapGuru() {
+            const tbody = document.getElementById('tabelRekapBody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
 
-    const kelasAktif = document.getElementById('filterKelas').value;
-    const filteredSiswa = state.siswaList.filter(s => s.kelas === kelasAktif);
+            const tpAktif = document.getElementById('filterTp').value;
+            const semAktif = document.getElementById('filterSem').value;
+            const kelasAktif = document.getElementById('filterKelas').value;
+            const babAktif = document.getElementById('filterBab').value;
 
-    if(filteredSiswa.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-slate-400">Belum ada data siswa untuk kelas ini.</td></tr>`;
-        return;
-    }
+            const filteredSiswa = state.siswaList.filter(s => s.kelas === kelasAktif);
 
-    filteredSiswa.forEach((siswa, idx) => {
-        // Cari semua nilai yang dimiliki siswa ini (berdasarkan id atau nisn)
-        const nilaiSiswa = state.nilaiList.filter(n => n.siswaId === siswa.id || n.siswaId === siswa.nisn || n.nisn == siswa.nisn);
+            if(filteredSiswa.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-slate-400">Belum ada data siswa untuk kelas ini.</td></tr>`;
+                return;
+            }
 
-        const getNilaiByType = (keyword) => {
-            const found = nilaiSiswa.find(n => n.jenis && n.jenis.toLowerCase().includes(keyword.toLowerCase()));
-            return found ? (found.status === 'Menunggu Koreksi' ? 'Pending' : found.nilai) : '-';
-        };
+            filteredSiswa.forEach((siswa, idx) => {
+                // Saring nilai yang sesuai dengan siswa, TP, Semester, dan Bab yang dipilih di filter atas
+                const nilaiSiswa = state.nilaiList.filter(n => {
+                    const matchSiswa = (n.siswaId === siswa.id || n.siswaId === siswa.nisn || n.nisn == siswa.nisn);
+                    const matchTp = n.tp ? n.tp === tpAktif : true;
+                    const matchSem = n.sem ? n.sem === semAktif : true;
+                    const matchBab = n.bab ? n.bab === babAktif : true;
+                    return matchSiswa && matchTp && matchSem && matchBab;
+                });
 
-        const nPg = getNilaiByType('Pilihan Ganda');
-        const nAn = getNilaiByType('Anagram');
-        const nCard = getNilaiByType('Card');
-        const nSum = getNilaiByType('Rangkum');
-        const nEssay = getNilaiByType('Essay');
+                const getNilaiByType = (keyword) => {
+                    const found = nilaiSiswa.find(n => n.jenis && n.jenis.toLowerCase().includes(keyword.toLowerCase()));
+                    return found ? (found.status === 'Menunggu Koreksi' ? 'Pending' : found.nilai) : '-';
+                };
 
-        const angkaList = [nPg, nAn, nCard, nSum, nEssay].filter(v => typeof v === 'number');
-        const avg = angkaList.length > 0 ? Math.round(angkaList.reduce((a, b) => a + b, 0) / angkaList.length) : '-';
+                const nPg = getNilaiByType('Pilihan Ganda');
+                const nAn = getNilaiByType('Anagram');
+                const nCard = getNilaiByType('Card');
+                const nSum = getNilaiByType('Rangkum');
+                const nEssay = getNilaiByType('Essay');
 
-        tbody.innerHTML += `
-            <tr class="hover:bg-slate-50">
-                <td class="p-3 text-center">${idx + 1}</td>
-                <td class="p-3 font-mono">${siswa.nisn}</td>
-                <td class="p-3 font-medium text-slate-800">${siswa.nama}</td>
-                <td class="p-3">${siswa.kelas}</td>
-                <td class="p-3 text-center">${nPg}</td>
-                <td class="p-3 text-center">${nAn}</td>
-                <td class="p-3 text-center">${nCard}</td>
-                <td class="p-3 text-center">${nSum}</td>
-                <td class="p-3 text-center">${nEssay}</td>
-                <td class="p-3 text-center font-bold text-indigo-700">${avg}</td>
-                <td class="p-3 text-center">
-                    <button onclick="resetNilaiSiswa('${siswa.id}')" class="text-rose-600 text-xs px-2 py-1 bg-rose-50 rounded"><i class="fa-solid fa-rotate-left"></i> Reset</button>
-                </td>
-            </tr>
-        `;
-    });
-}
-  
+                const angkaList = [nPg, nAn, nCard, nSum, nEssay].filter(v => typeof v === 'number');
+                const avg = angkaList.length > 0 ? Math.round(angkaList.reduce((a, b) => a + b, 0) / angkaList.length) : '-';
 
-        // FUNGSI EKSPOR CSV PROFESIONAL (POIN 4)
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 text-center">${idx + 1}</td>
+                        <td class="p-3 font-mono">${siswa.nisn}</td>
+                        <td class="p-3 font-medium text-slate-800">${siswa.nama}</td>
+                        <td class="p-3">${siswa.kelas}</td>
+                        <td class="p-3 text-center">${nPg}</td>
+                        <td class="p-3 text-center">${nAn}</td>
+                        <td class="p-3 text-center">${nCard}</td>
+                        <td class="p-3 text-center">${nSum}</td>
+                        <td class="p-3 text-center">${nEssay}</td>
+                        <td class="p-3 text-center font-bold text-indigo-700">${avg}</td>
+                        <td class="p-3 text-center">
+                            <button onclick="resetNilaiSiswa('${siswa.id}')" class="text-rose-600 text-xs px-2 py-1 bg-rose-50 rounded"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // FUNGSI EKSPOR CSV PROFESIONAL
         function exportRekapCSV() {
             const kelasAktif = document.getElementById('filterKelas').value;
             const tpAktif = document.getElementById('filterTp').value;
             const semAktif = document.getElementById('filterSem').value;
+            const babAktif = document.getElementById('filterBab').value;
             const filteredSiswa = state.siswaList.filter(s => s.kelas === kelasAktif);
 
             let csvContent = "data:text/csv;charset=utf-8,";
             csvContent += `LAPORAN REKAPITULASI NILAI SISWA\n`;
             csvContent += `Tahun Pelajaran: ${tpAktif} (Semester ${semAktif})\n`;
-            csvContent += `Kelas: ${kelasAktif}\n`;
+            csvContent += `Kelas: ${kelasAktif} | Bab: ${babAktif}\n`;
             csvContent += `Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}\n\n`;
             csvContent += `No,NISN,Nama Lengkap,Kelas,Pilihan Ganda,Anagram,Card Matching,Merangkum Materi,Essay,Rata-Rata\n`;
 
             filteredSiswa.forEach((siswa, idx) => {
-                const getVal = (jenis) => {
-                    const found = state.nilaiList.find(n => n.siswaId === siswa.id && n.jenis === jenis);
+                const nilaiSiswa = state.nilaiList.filter(n => {
+                    const matchSiswa = (n.siswaId === siswa.id || n.siswaId === siswa.nisn || n.nisn == siswa.nisn);
+                    const matchTp = n.tp ? n.tp === tpAktif : true;
+                    const matchSem = n.sem ? n.sem === semAktif : true;
+                    const matchBab = n.bab ? n.bab === babAktif : true;
+                    return matchSiswa && matchTp && matchSem && matchBab;
+                });
+
+                const getVal = (keyword) => {
+                    const found = nilaiSiswa.find(n => n.jenis && n.jenis.toLowerCase().includes(keyword.toLowerCase()));
                     return found ? (found.status === 'Menunggu Koreksi' ? 'Pending' : found.nilai) : '-';
                 };
                 const nPg = getVal('Pilihan Ganda');
@@ -875,42 +900,64 @@
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.href = encodedUri;
-            link.download = `rekap_nilai_${kelasAktif.toLowerCase().replace(/\s+/g, '_')}.csv`;
+            link.download = `rekap_nilai_${kelasAktif.toLowerCase().replace(/\s+/g, '_')}_${babAktif.toLowerCase().replace(/\s+/g, '_')}.csv`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
 
+        // FUNGSI KOREKSI GURU
         function renderKoreksiGuru() {
             const tbody = document.getElementById('tabelKoreksiBody');
             if(!tbody) return;
             tbody.innerHTML = '';
+            
             const pendingList = state.nilaiList.filter(n => n.status === 'Menunggu Koreksi');
+            
             if(pendingList.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">Tidak ada jawaban essay/rangkuman yang perlu dikoreksi.</td></tr>`;
+                updatePendingBadge();
                 return;
             }
+
             pendingList.forEach(n => {
-                const siswa = state.siswaList.find(s => s.id === n.siswaId);
-                const namaSiswa = siswa ? siswa.nama : 'Siswa';
+                const siswa = state.siswaList.find(s => s.id === n.siswaId) || { nama: 'Siswa' };
+                let teksJawaban = '';
+                if(typeof n.jawaban === 'object') {
+                    teksJawaban = Object.values(n.jawaban).join(' | ');
+                } else {
+                    teksJawaban = n.jawaban || '-';
+                }
+
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50">
-                        <td class="p-3 font-medium">${namaSiswa}</td>
+                        <td class="p-3 font-medium">${siswa.nama}</td>
                         <td class="p-3 text-xs">${n.bab} (${n.jenis})</td>
-                        <td class="p-3 text-xs font-mono bg-slate-50 rounded">${JSON.stringify(n.jawaban)}</td>
+                        <td class="p-3 text-xs font-mono bg-slate-50 rounded max-w-xs truncate" title="${teksJawaban}">${teksJawaban}</td>
                         <td class="p-3 text-center"><span class="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-full">Pending</span></td>
                         <td class="p-3 text-center">
-                            <input type="number" id="input_nilai_${n.id}" placeholder="0-100" class="w-16 border rounded p-1 text-xs mr-2">
-                            <button onclick="simpanKoreksi('${n.id}')" class="bg-indigo-600 text-white px-3 py-1 rounded text-xs">Simpan</button>
+                            <input type="number" id="input_nilai_${n.id}" min="0" max="100" placeholder="0-100" class="w-16 border rounded p-1 text-xs mr-2 text-center">
+                            <button onclick="simpanKoreksi('${n.id}')" class="bg-indigo-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-indigo-700">Simpan</button>
                         </td>
                     </tr>
                 `;
             });
+            updatePendingBadge();
         }
 
         function simpanKoreksi(id) {
-            const val = parseInt(document.getElementById(`input_nilai_${id}`).value);
-            if(isNaN(val) || val < 0 || val > 100) { alert('Masukkan nilai valid (0-100)!'); return; }
+            const inputEl = document.getElementById(`input_nilai_${id}`);
+            if(!inputEl || inputEl.value === "") {
+                alert('Masukkan angka nilai terlebih dahulu (0-100)!');
+                return;
+            }
+
+            const val = parseInt(inputEl.value);
+            if(isNaN(val) || val < 0 || val > 100) { 
+                alert('Masukkan nilai valid antara 0 sampai 100!'); 
+                return; 
+            }
+
             const entry = state.nilaiList.find(n => n.id === id);
             if(entry) {
                 entry.nilai = val;
@@ -918,7 +965,10 @@
                 saveToStorage();
                 renderKoreksiGuru();
                 updatePendingBadge();
-                alert('Nilai berhasil disimpan!');
+                if(typeof renderRekapGuru === 'function') renderRekapGuru();
+                alert('Nilai koreksi berhasil disimpan dan masuk ke Rekap!');
+            } else {
+                alert('Data nilai siswa tidak ditemukan.');
             }
         }
 
@@ -944,11 +994,13 @@
         function updatePendingBadge() {
             const count = state.nilaiList.filter(n => n.status === 'Menunggu Koreksi').length;
             const badge = document.getElementById('badgePendingCount');
-            if(count > 0) {
-                badge.innerText = count;
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
+            if(badge) {
+                if(count > 0) {
+                    badge.innerText = count;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
             }
         }
 
@@ -1348,7 +1400,6 @@
             document.getElementById('siswaDashboard').classList.remove('hidden');
         }
 
-        // FUNGSI KONFIRMASI KIRIM UJIAN (POIN 1)
         function konfirmasiKirimUjian() {
             document.getElementById('modalKonfirmasiKirim').classList.remove('hidden');
         }
@@ -1357,7 +1408,8 @@
             document.getElementById('modalKonfirmasiKirim').classList.add('hidden');
         }
 
-  function eksekusiKirimUjian(isAutoSubmit = false) {
+        // FUNGSI EKSEKUSI KIRIM UJIAN YANG MENYERTAKAN TP & SEMESTER
+        function eksekusiKirimUjian(isAutoSubmit = false) {
             document.getElementById('modalKonfirmasiKirim').classList.add('hidden');
             if(state.timerInterval) clearInterval(state.timerInterval);
 
@@ -1371,7 +1423,6 @@
             let terjawabCount = 0;
             let totalSoalCount = 0;
             
-            // Periksa apakah jenis kuis termasuk Essay atau Merangkum Materi (tidak sensitif huruf besar/kecil)
             let jenisLower = jenis.toLowerCase();
             let adaEssay = jenisLower.includes('essay') || jenisLower.includes('rangkum');
 
@@ -1421,7 +1472,6 @@
                             </div>
                         `;
                     } else {
-                        // Tangkap teks jawaban untuk Essay / Merangkum Materi
                         const inp = item.querySelector('.siswa-ans, textarea, input[type="text"]');
                         const val = inp ? inp.value.trim() : '-';
                         detailJawaban[soalId] = val;
@@ -1443,6 +1493,8 @@
             const entry = {
                 id: 'n_' + Date.now(),
                 siswaId: state.currentSiswa.id,
+                tp: document.getElementById('filterTp').value,     // Rekam TP aktif
+                sem: document.getElementById('filterSem').value,   // Rekam Semester aktif
                 jenis: jenis,
                 bab: bab,
                 nilai: nilaiAkhir,
@@ -1469,52 +1521,13 @@
                 renderSiswaDashboard();
             }
         }
+
         function tutupResultCard() {
             document.getElementById('siswaResultCard').classList.add('hidden');
             document.getElementById('siswaDashboard').classList.remove('hidden');
             renderSiswaDashboard();
         }
-                function saveFirebaseConfig() {
-            const configText = document.getElementById('inputFirebaseConfig').value.trim();
-            if (!configText) {
-                alert('Silakan masukkan blok konfigurasi Firebase terlebih dahulu!');
-                return;
-            }
 
-            try {
-                localStorage.setItem('app_firebase_config', configText);
-                
-                const statusText = document.getElementById('firebaseStatusText');
-                if (statusText) {
-                    statusText.innerText = 'Status: Konfigurasi Tersimpan (Aktif)';
-                    statusText.className = 'text-xs font-medium text-emerald-600 font-bold';
-                }
-
-                alert('Konfigurasi Firebase berhasil disimpan!');
-            } catch (error) {
-                alert('Terjadi kesalahan saat menyimpan konfigurasi: ' + error.message);
-            }
-        }
-        // ==========================================
-        // TAMBAHKAN FUNGSI PEMUAT OTOMATIS INI DI BAWAHNYA
-        // ==========================================
-                // Fungsi Pemuat Otomatis Firebase
-        function loadSavedFirebaseConfig() {
-            const savedConfig = localStorage.getItem('app_firebase_config');
-            if (savedConfig) {
-                const inputEl = document.getElementById('inputFirebaseConfig');
-                if (inputEl) inputEl.value = savedConfig;
-
-                const statusText = document.getElementById('firebaseStatusText');
-                if (statusText) {
-                    statusText.innerText = 'Status: Konfigurasi Tersimpan (Aktif)';
-                    statusText.className = 'text-xs font-medium text-emerald-600 font-bold';
-                }
-            }
-        }
-        // ==========================================
-        // 1. FIREBASE CONFIG SAVE & LOAD
-        // ==========================================
         function saveFirebaseConfig() {
             const configText = document.getElementById('inputFirebaseConfig').value.trim();
             if (!configText) {
@@ -1549,364 +1562,6 @@
             }
         }
         loadSavedFirebaseConfig();
-
-        // ==========================================
-        // 2. FUNGSI KOREKSI GURU (MENGGUNAKAN STATE UTAMA)
-        // ==========================================
-        function renderKoreksiGuru() {
-            const tbody = document.getElementById('tabelKoreksiBody');
-            if(!tbody) return;
-            tbody.innerHTML = '';
-            
-            const pendingList = state.nilaiList.filter(n => n.status === 'Menunggu Koreksi');
-            
-            if(pendingList.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">Tidak ada jawaban essay/rangkuman yang perlu dikoreksi.</td></tr>`;
-                return;
-            }
-
-            pendingList.forEach(n => {
-                const siswa = state.siswaList.find(s => s.id === n.siswaId) || { nama: 'Siswa' };
-                let teksJawaban = typeof n.jawaban === 'object' ? JSON.stringify(n.jawaban) : n.jawaban;
-
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50">
-                        <td class="p-3 font-medium">${siswa.nama}</td>
-                        <td class="p-3 text-xs">${n.bab} (${n.jenis})</td>
-                        <td class="p-3 text-xs font-mono bg-slate-50 rounded max-w-xs truncate" title="${teksJawaban}">${teksJawaban}</td>
-                        <td class="p-3 text-center"><span class="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-full">Pending</span></td>
-                        <td class="p-3 text-center">
-                            <input type="number" id="input_nilai_${n.id}" min="0" max="100" placeholder="0-100" class="w-16 border rounded p-1 text-xs mr-2 text-center">
-                            <button onclick="simpanKoreksiGuru('${n.id}')" class="bg-indigo-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-indigo-700">Simpan</button>
-                        </td>
-                    </tr>
-                `;
-            });
-            updatePendingBadge();
-        }
-
-        function simpanKoreksiGuru(nilaiId) {
-            const inputEl = document.getElementById(`input_nilai_${nilaiId}`);
-            if(!inputEl || inputEl.value === "") {
-                alert('Silakan masukkan angka nilai terlebih dahulu!');
-                return;
-            }
-
-            const val = parseInt(inputEl.value);
-            if(isNaN(val) || val < 0 || val > 100) { 
-                alert('Masukkan nilai valid antara 0 sampai 100!'); 
-                return; 
-            }
-
-            const entry = state.nilaiList.find(n => n.id === nilaiId);
-            if(entry) {
-                entry.nilai = val;
-                entry.status = 'Selesai';
-                
-                // Menyimpan ke penyimpanan utama aplikasi
-                saveToStorage();
-                
-                renderKoreksiGuru();
-                updatePendingBadge();
-                if(typeof renderRekapGuru === 'function') renderRekapGuru();
-                
-                alert('Nilai koreksi berhasil disimpan dan masuk ke Rekap!');
-            } else {
-                alert('Data nilai siswa tidak ditemukan.');
-            }
-        }
-
-        // ==========================================
-        // 3. FUNGSI KIRIM TUGAS SISWA TERPADU
-        // ==========================================
-        function kirimTugasSiswa(siswaId, jenisTugas, teksJawaban, babMateri) {
-            if (!teksJawaban || teksJawaban.trim() === "") {
-                alert("Jawaban tidak boleh kosong!");
-                return;
-            }
-
-            // Hapus duplikat nilai lama agar tidak menumpuk
-            state.nilaiList = state.nilaiList.filter(n => !(n.siswaId === siswaId && n.bab === babMateri && n.jenis === jenisTugas));
-
-            const dataBaru = {
-                id: 'nilai_' + Date.now(),
-                siswaId: String(siswaId),
-                jenis: jenisTugas, 
-                bab: babMateri,
-                jawaban: teksJawaban,
-                nilai: 0,
-                status: 'Menunggu Koreksi',
-                timestamp: new Date().toISOString()
-            };
-
-            state.nilaiList.push(dataBaru);
-            saveToStorage(); // Langsung simpan permanen ke storage aplikasi
-
-            alert("Tugas berhasil dikirim ke guru untuk dikoreksi!");
-            if(typeof renderSiswaDashboard === 'function') {
-                renderSiswaDashboard();
-            }
-        }
-    
-// ==========================================
-// PERBARUI FUNGSI RENDER KOREKSI GURU DI SINI
-// ==========================================
-function renderKoreksiGuru() {
-    // Cari elemen kontainer tempat tabel koreksi ditampilkan
-    const tabKoreksi = document.getElementById('tabKoreksi') || document.getElementById('tabelKoreksiContainer');
-    if (!tabKoreksi) return;
-
-    // Filter data yang statusnya masih menunggu koreksi
-    const pendingList = state.nilaiList.filter(n => n.status === 'Menunggu Koreksi');
-
-    // Buat tampilan tabel koreksi secara otomatis jika belum ada di HTML
-    let htmlContent = `
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
-            <h3 class="font-bold text-slate-800 text-base">Daftar Antrean Koreksi Essay & Rangkuman</h3>
-    `;
-
-    if (pendingList.length === 0) {
-        htmlContent += `<p class="text-xs text-slate-400 py-4 text-center">Belum ada jawaban siswa yang menunggu koreksi.</p></div>`;
-    } else {
-        htmlContent += `
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse text-xs">
-                    <thead>
-                        <tr class="bg-slate-100 border-b text-slate-700">
-                            <th class="p-3">No</th>
-                            <th class="p-3">ID/NISN Siswa</th>
-                            <th class="p-3">Jenis Kuis</th>
-                            <th class="p-3">Jawaban Siswa</th>
-                            <th class="p-3 text-center">Beri Nilai (0-100)</th>
-                            <th class="p-3 text-center">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-        `;
-
-        pendingList.forEach((item, idx) => {
-            const siswaInfo = state.siswaList.find(s => s.id === item.siswaId || s.nisn === item.siswaId) || { nama: item.siswaId };
-            htmlContent += `
-                <tr class="hover:bg-slate-50">
-                    <td class="p-3 text-center">${idx + 1}</td>
-                    <td class="p-3 font-medium text-slate-800">${siswaInfo.nama}</td>
-                    <td class="p-3">${item.jenis}</td>
-                    <td class="p-3 max-w-xs truncate" title="${item.jawaban}">${item.jawaban}</td>
-                    <td class="p-3 text-center">
-                        <input type="number" id="input_nilai_${item.id}" min="0" max="100" class="w-20 border rounded p-1 text-center text-xs" placeholder="Nilai">
-                    </td>
-                    <td class="p-3 text-center">
-                        <button onclick="prosesSimpanKoreksi('${item.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded text-xs font-medium">Simpan</button>
-                    </td>
-                </tr>
-            `;
-        });
-
-        htmlContent += `</tbody></table></div></div>`;
-    }
-
-    // Masukkan ke dalam elemen tab koreksi
-    if (document.getElementById('tabKoreksi')) {
-        // Jika tabKoreksi berbentuk pembungkus, kita taruh di dalamnya
-        let innerDiv = document.getElementById('tabelKoreksiContainer');
-        if (!innerDiv) {
-            innerDiv = document.createElement('div');
-            innerDiv.id = 'tabelKoreksiContainer';
-            document.getElementById('tabKoreksi').appendChild(innerDiv);
-        }
-        innerDiv.innerHTML = htmlContent;
-    }
-}
-
-// Fungsi pendukung untuk tombol Simpan di tabel koreksi
-function prosesSimpanKoreksi(nilaiId) {
-    const inputEl = document.getElementById(`input_nilai_${nilaiId}`);
-    if (!inputEl || inputEl.value === "") {
-        alert("Silakan masukkan angka nilai terlebih dahulu!");
-        return;
-    }
-
-    const nilaiAngka = Number(inputEl.value);
-    const target = state.nilaiList.find(n => n.id === nilaiId);
-    
-    if (target) {
-        target.nilai = nilaiAngka;
-        target.status = 'Selesai';
-        
-        // Simpan ke localStorage
-        localStorage.setItem('app_nilai_list', JSON.stringify(state.nilaiList));
-        
-        alert("Nilai berhasil disimpan dan masuk ke Rekap!");
-        renderKoreksiGuru();
-        if (typeof renderRekapGuru === 'function') renderRekapGuru();
-    }
-}
-             // ==========================================
-        // AUTO-LOAD DATA NILAI DARI LOCALSTORAGE
-        // ==========================================
-        function loadInitialState() {
-            const savedNilai = localStorage.getItem('app_nilai_list');
-            if (savedNilai) {
-                try {
-                    state.nilaiList = JSON.parse(savedNilai);
-                } catch (e) {
-                    console.error("Gagal memuat data nilai:", e);
-                }
-            }
-        }
-
-        // Jalankan otomatis saat halaman dimuat
-        loadInitialState();   
-        // ==========================================
-// FUNGSI UTAMA SISWA MENGIRIM TUGAS / ESSAY / RANGKUMAN
-// ==========================================
-function kirimTugasSiswa(siswaId, jenisTugas, teksJawaban) {
-    if (!teksJawaban || teksJawaban.trim() === "") {
-        alert("Jawaban tidak boleh kosong!");
-        return;
-    }
-
-    // Pastikan state nilaiList sudah dimuat dari localStorage
-    let saved = localStorage.getItem('app_nilai_list');
-    if (saved) {
-        state.nilaiList = JSON.parse(saved);
-    }
-
-    // Buat data nilai baru
-    const dataBaru = {
-        id: 'nilai_' + Date.now(),
-        siswaId: String(siswaId),
-        jenis: jenisTugas, // 'Essay' atau 'Merangkum Materi'
-        jawaban: teksJawaban,
-        nilai: 0,
-        status: 'Menunggu Koreksi',
-        timestamp: new Date().toISOString()
-    };
-
-    // Masukkan ke array dan simpan ke localStorage
-    state.nilaiList.push(dataBaru);
-    localStorage.setItem('app_nilai_list', JSON.stringify(state.nilaiList));
-
-    alert("Jawaban berhasil dikirim ke guru untuk dikoreksi!");
-}
-// 1. Pastikan saat tab koreksi diklik, tabelnya langsung merender data
-        function switchGuruTab(tabId) {
-            state.activeGuruTab = tabId;
-            document.querySelectorAll('.guru-tab').forEach(btn => {
-                btn.className = btn.dataset.tab === tabId ? 'guru-tab px-4 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white' : 'guru-tab px-4 py-2 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200';
-            });
-            document.querySelectorAll('.guru-content').forEach(c => c.classList.add('hidden'));
-            document.getElementById(tabId).classList.remove('hidden');
-            renderGuru();
-            if(tabId === 'tabRekap') renderRekapGuru();
-            if(tabId === 'tabKoreksi') renderKoreksiGuru(); // <-- Ini memanggil pemuat tabel koreksi
-        }
-
-        // 2. Fungsi Perender Tabel Koreksi Guru (Pastikan fungsi ini ada di script Anda)
-        function renderKoreksiGuru() {
-            const tbody = document.getElementById('tabelKoreksiBody');
-            if(!tbody) return;
-            tbody.innerHTML = '';
-            
-            // Ambil data nilai yang statusnya 'Menunggu Koreksi'
-            const pendingList = state.nilaiList.filter(n => n.status === 'Menunggu Koreksi');
-            
-            if(pendingList.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">Tidak ada jawaban essay/rangkuman yang perlu dikoreksi.</td></tr>`;
-                updatePendingBadge();
-                return;
-            }
-
-            pendingList.forEach(n => {
-                const siswa = state.siswaList.find(s => s.id === n.siswaId) || { nama: 'Siswa (ID: ' + n.siswaId + ')' };
-                
-                // Ambil teks jawaban siswa
-                let teksJawaban = '';
-                if(typeof n.jawaban === 'object') {
-                    teksJawaban = Object.values(n.jawaban).join(' | ');
-                } else {
-                    teksJawaban = n.jawaban || '-';
-                }
-
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50">
-                        <td class="p-3 font-medium text-slate-800">${siswa.nama}</td>
-                        <td class="p-3 text-xs">${n.bab} (${n.jenis})</td>
-                        <td class="p-3 text-xs font-mono bg-slate-50 rounded max-w-xs truncate" title="${teksJawaban}">${teksJawaban}</td>
-                        <td class="p-3 text-center"><span class="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-full font-semibold">Pending</span></td>
-                        <td class="p-3 text-center">
-                            <input type="number" id="input_nilai_${n.id}" min="0" max="100" placeholder="0-100" class="w-16 border rounded p-1 text-xs mr-2 text-center">
-                            <button onclick="simpanKoreksi('${n.id}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-xs font-medium transition">Simpan</button>
-                        </td>
-                    </tr>
-                `;
-            });
-            updatePendingBadge();
-        }
-
-        // 3. Fungsi Menyimpan Nilai Koreksi Guru ke Rekap
-        function simpanKoreksi(id) {
-            const inputEl = document.getElementById(`input_nilai_${id}`);
-            if(!inputEl || inputEl.value === "") {
-                alert('Masukkan angka nilai terlebih dahulu (0-100)!');
-                return;
-            }
-
-            const val = parseInt(inputEl.value);
-            if(isNaN(val) || val < 0 || val > 100) { 
-                alert('Masukkan nilai valid antara 0 sampai 100!'); 
-                return; 
-            }
-
-            const entry = state.nilaiList.find(n => n.id === id);
-            if(entry) {
-                entry.nilai = val;
-                entry.status = 'Selesai';
-                saveToStorage();
-                renderKoreksiGuru();
-                updatePendingBadge();
-                if(typeof renderRekapGuru === 'function') renderRekapGuru();
-                alert('Nilai koreksi berhasil disimpan dan otomatis masuk ke Rekap Nilai!');
-            } else {
-                alert('Data nilai siswa tidak ditemukan.');
-            }
-        }
-        // ==========================================
-// SOLUSI PASTI KOREKSI ESSAY & RANGKUMAN
-// ==========================================
-window.addEventListener('DOMContentLoaded', () => {
-    // Memantau setiap kali tombol kirim ujian ditekan oleh siswa
-    const originalEksekusi = window.eksekusiKirimUjian;
-    if (typeof originalEksekusi === 'function') {
-        window.eksekusiKirimUjian = function(isAutoSubmit = false) {
-            originalEksekusi(isAutoSubmit);
-            
-            // Tangkap teks jawaban essay/rangkuman dari layar siswa
-            const jenisEl = document.getElementById('wsJenisKuis');
-            const babEl = document.getElementById('wsJudulKuis');
-            
-            if (jenisEl && babEl && state.currentSiswa) {
-                const jenis = jenisEl.innerText;
-                const bab = babEl.innerText;
-                
-                if (jenis.toLowerCase().includes('essay') || jenis.toLowerCase().includes('rangkum')) {
-                    const textInp = document.querySelector('#wsContentArea textarea, #wsContentArea input[type="text"]');
-                    const teksJawaban = textInp ? textInp.value.trim() : "Tidak ada jawaban tertulis";
-
-                    // Perbarui entri nilai terakhir agar statusnya pasti 'Menunggu Koreksi'
-                    if (state.nilaiList.length > 0) {
-                        const latest = state.nilaiList[state.nilaiList.length - 1];
-                        if (latest && latest.siswaId === state.currentSiswa.id) {
-                            latest.status = 'Menunggu Koreksi';
-                            latest.jawaban = teksJawaban;
-                            saveToStorage();
-                        }
-                    }
-                }
-            }
-        };
-    }
-});
     </script>
 </body>
 </html>
