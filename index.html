@@ -97,7 +97,7 @@
                     <select id="filterJenis" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500">
                         <option value="Pilihan Ganda">1. Pilihan Ganda</option>
                         <option value="Anagram">2. Anagram (Merangkai Huruf)</option>
-                        <option value="Card Matching">3. Pencocokan Kartu</option>
+                        <option value="Card Matching">3. Pencocokan Kartu 3D</option>
                         <option value="Merangkum Materi">4. Merangkum Materi</option>
                         <option value="Essay">5. Essay / Uraian</option>
                     </select>
@@ -222,7 +222,7 @@
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-4">
                     <div>
                         <h3 class="font-bold text-slate-800 text-base">Rekapitulasi Nilai Siswa</h3>
-                        <p class="text-xs text-slate-500">Nilai disaring otomatis berdasarkan kombinasi Tahun Pelajaran, Semester, Kelas, Bab, dan Jenis Kuis di atas.</p>
+                        <p class="text-xs text-slate-500">Nilai disaring otomatis berdasarkan kombinasi Tahun Pelajaran, Semester, Kelas, dan Bab di atas.</p>
                     </div>
                     <button onclick="exportRekapCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"><i class="fa-solid fa-file-excel mr-2"></i>Ekspor CSV Profesional</button>
                 </div>
@@ -753,7 +753,7 @@
                     tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">Belum ada soal pada filter ini.</td></tr>`;
                 } else {
                     filteredSoal.forEach((s, idx) => {
-                        let detailOpsi = s.jenis === 'Pilihan Ganda' ? `Kunci: <b class="text-emerald-600">${s.kunci}</b>` : `Kunci: <b class="text-emerald-600">${s.kunci}</b>`;
+                        let detailOpsi = s.jenis === 'Pilihan Ganda' ? `Kunci: <b class="text-emerald-600">${s.kunci}</b>` : `Kunci / Pasangan: <b class="text-emerald-600">${s.kunci}</b>`;
                         tbody.innerHTML += `
                             <tr class="hover:bg-slate-50">
                                 <td class="p-3 text-center">${idx + 1}</td>
@@ -814,7 +814,6 @@
             }
 
             filteredSiswa.forEach((siswa, idx) => {
-                // Saring nilai yang sesuai dengan siswa, TP, Semester, dan Bab yang dipilih di filter atas
                 const nilaiSiswa = state.nilaiList.filter(n => {
                     const matchSiswa = (n.siswaId === siswa.id || n.siswaId === siswa.nisn || n.nisn == siswa.nisn);
                     const matchTp = n.tp ? n.tp === tpAktif : true;
@@ -1371,6 +1370,24 @@
                             <input type="text" id="ans_${s.id}" class="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm uppercase font-mono siswa-ans focus:ring-2 focus:ring-indigo-500" placeholder="Ketik susunan kata benar...">
                         </div>
                     `;
+                } else if(jenis === 'Card Matching') {
+                    // Tampilan Kartu 3D Interaktif / Kotak Pencocokan
+                    contentArea.innerHTML += `
+                        <div class="p-5 bg-gradient-to-br from-indigo-900 to-violet-900 text-white rounded-3xl shadow-xl border border-indigo-700 space-y-4" data-soal-id="${s.id}" data-kunci="${s.kunci}" data-jenis="${jenis}">
+                            <div class="flex items-center justify-between">
+                                <span class="bg-white/20 text-white px-3 py-1 rounded-full text-xs font-mono font-bold">Kartu 3D #${idx + 1}</span>
+                                <span class="text-xs text-indigo-200">${s.bobot} Poin</span>
+                            </div>
+                            <div class="p-6 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 text-center space-y-2">
+                                <div class="text-xs text-indigo-200 uppercase tracking-widest font-semibold">Petunjuk / Soal Kartu</div>
+                                <div class="text-lg font-bold">${s.tanya}</div>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-xs font-medium text-indigo-200 uppercase">Ketik Pasangan / Jawaban Kartu Ini:</label>
+                                <input type="text" id="ans_${s.id}" class="w-full bg-white text-slate-800 font-bold border-0 rounded-xl p-3.5 text-sm siswa-ans focus:ring-4 focus:ring-indigo-400 shadow-lg" placeholder="Masukkan jawaban pasangan kartu...">
+                            </div>
+                        </div>
+                    `;
                 } else {
                     contentArea.innerHTML += `
                         <div class="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3" data-soal-id="${s.id}" data-kunci="${s.kunci}" data-jenis="${jenis}">
@@ -1408,7 +1425,7 @@
             document.getElementById('modalKonfirmasiKirim').classList.add('hidden');
         }
 
-        // FUNGSI EKSEKUSI KIRIM UJIAN YANG MENYERTAKAN TP & SEMESTER
+        // FUNGSI EKSEKUSI KIRIM UJIAN
         function eksekusiKirimUjian(isAutoSubmit = false) {
             document.getElementById('modalKonfirmasiKirim').classList.add('hidden');
             if(state.timerInterval) clearInterval(state.timerInterval);
@@ -1493,8 +1510,8 @@
             const entry = {
                 id: 'n_' + Date.now(),
                 siswaId: state.currentSiswa.id,
-                tp: document.getElementById('filterTp').value,     // Rekam TP aktif
-                sem: document.getElementById('filterSem').value,   // Rekam Semester aktif
+                tp: document.getElementById('filterTp').value,     
+                sem: document.getElementById('filterSem').value,   
                 jenis: jenis,
                 bab: bab,
                 nilai: nilaiAkhir,
@@ -1561,7 +1578,6 @@
                 }
             }
         }
-        loadSavedFirebaseConfig();
     </script>
 </body>
 </html>
