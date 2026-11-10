@@ -531,19 +531,19 @@
             activeGuruTab: 'tabBankSoal',
             master: {
                 tp: ['2025/2026', '2026/2027'],
-                kelas: ['Kelas 1', 'Kelas X', 'Kelas XI', 'Kelas XII'],
+                kelas: ['Kelas 1', 'Kelas 4', 'Kelas X', 'Kelas XI', 'Kelas XII'],
                 bab: ['Bab 1 - Pengantar', 'Bab 2 - Evaluasi']
             },
             soalList: [
-                { id: '1', tp: '2025/2026', sem: 'Ganjil', kelas: 'Kelas 1', bab: 'Bab 1 - Pengantar', jenis: 'Pilihan Ganda', tanya: 'Berapakah hasil dari 5 + 5 x 2?', opsi: { A: '15', B: '20', C: '10', D: '25' }, kunci: 'A', bobot: 10 },
-                { id: '2', tp: '2025/2026', sem: 'Ganjil', kelas: 'Kelas 1', bab: 'Bab 1 - Pengantar', jenis: 'Anagram', tanya: 'Susun huruf acak berikut menjadi kata yang benar:', kunci: 'KOMPUTER', bobot: 20 },
-                { id: '3', tp: '2025/2026', sem: 'Ganjil', kelas: 'Kelas 1', bab: 'Bab 1 - Pengantar', jenis: 'Card Matching', tanya: 'RAM', kunci: 'Memori Utama', bobot: 15 }
+                { id: '1', tp: '2025/2026', sem: 'Ganjil', kelas: 'Kelas 4', bab: 'Bab 1 - Pengantar', jenis: 'Pilihan Ganda', tanya: 'Berapakah hasil dari 5 + 5 x 2?', opsi: { A: '15', B: '20', C: '10', D: '25' }, kunci: 'A', bobot: 10 },
+                { id: '2', tp: '2025/2026', sem: 'Ganjil', kelas: 'Kelas 4', bab: 'Bab 1 - Pengantar', jenis: 'Anagram', tanya: 'Susun huruf acak berikut menjadi kata yang benar:', kunci: 'KOMPUTER', bobot: 20 },
+                { id: '3', tp: '2025/2026', sem: 'Ganjil', kelas: 'Kelas 4', bab: 'Bab 1 - Pengantar', jenis: 'Card Matching', tanya: 'RAM', kunci: 'Memori Utama', bobot: 15 }
             ],
             siswaList: [
-                { id: 's1', nisn: '1001', nama: 'Ahmad Fauzi (Demo)', kelas: 'Kelas 1' }
+                { id: 's1', nisn: '1001', nama: 'Ahmad Fauzi (Demo)', kelas: 'Kelas 4' }
             ],
             settingsList: {
-                '2025/2026_Ganjil_Kelas 1_Bab 1 - Pengantar_Pilihan Ganda': { aktif: true, durasi: 30 }
+                '2025/2026_Ganjil_Kelas 4_Bab 1 - Pengantar_Pilihan Ganda': { aktif: true, durasi: 30 }
             },
             nilaiList: [],
             currentSiswa: null,
@@ -596,7 +596,7 @@
         }
 
         function triggerDemoMode() {
-            const defaultKey = '2025/2026_Ganjil_Kelas 1_Bab 1 - Pengantar_Pilihan Ganda';
+            const defaultKey = '2025/2026_Ganjil_Kelas 4_Bab 1 - Pengantar_Pilihan Ganda';
             state.settingsList[defaultKey] = { aktif: true, durasi: 15 };
             saveToStorage();
             
@@ -818,7 +818,6 @@
             }
 
             filteredSiswa.forEach((siswa, idx) => {
-                // Pencocokan fleksibel berdasarkan siswa dan bab
                 const nilaiSiswa = state.nilaiList.filter(n => {
                     const matchSiswa = (n.siswaId === siswa.id || n.siswaId === siswa.nisn || n.nisn == siswa.nisn);
                     const matchBab = n.bab ? n.bab.trim().toLowerCase() === babAktif.trim().toLowerCase() : true;
@@ -1246,12 +1245,22 @@
         }
 
         function populateSiswaDropdown() {
-            document.getElementById('siswaLoginKelas').innerHTML = state.master.kelas.map(k => `<option value="${k}">${k}</option>`).join('');
-            const kelas = document.getElementById('siswaLoginKelas').value;
-            const select = document.getElementById('siswaLoginNama');
-            select.innerHTML = '<option value="">-- Pilih Nama Anda --</option>';
+            // Mengambil daftar kelas secara dinamis dari master data
+            const selectKelas = document.getElementById('siswaLoginKelas');
+            const kelasTerpilihSebelumnya = selectKelas.value;
+            
+            selectKelas.innerHTML = state.master.kelas.map(k => `<option value="${k}">${k}</option>`).join('');
+            
+            if (state.master.kelas.includes(kelasTerpilihSebelumnya)) {
+                selectKelas.value = kelasTerpilihSebelumnya;
+            }
+
+            const kelas = selectKelas.value;
+            const selectNama = document.getElementById('siswaLoginNama');
+            selectNama.innerHTML = '<option value="">-- Pilih Nama Anda --</option>';
+            
             state.siswaList.filter(s => s.kelas === kelas).forEach(s => {
-                select.innerHTML += `<option value="${s.id}">${s.nama} (${s.nisn})</option>`;
+                selectNama.innerHTML += `<option value="${s.id}">${s.nama} (${s.nisn})</option>`;
             });
         }
 
@@ -1631,7 +1640,6 @@
                 jawaban: detailJawaban
             };
 
-            // Hapus nilai lama dengan siswa, bab, dan jenis yang sama, lalu masukkan yang baru
             state.nilaiList = state.nilaiList.filter(n => !(n.siswaId === state.currentSiswa.id && n.bab === bab && n.jenis === jenis));
             state.nilaiList.push(entry);
             saveToStorage();
