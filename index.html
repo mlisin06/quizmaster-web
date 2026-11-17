@@ -48,8 +48,8 @@
                 <button onclick="triggerDemoMode()" class="hidden px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white transition shadow items-center gap-1.5">
                     <i class="fa-solid fa-wand-magic-sparkles"></i> Mode Demo Cepat
                 </button>
-                <button onclick="requestPinGuru()" id="btnRoleGuru" class="px-4 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 hover:bg-indigo-500 transition shadow">Panel Guru</button>
-                <button onclick="switchRole('siswa')" id="btnRoleSiswa" class="px-4 py-1.5 rounded-lg text-sm font-medium bg-indigo-900 border border-indigo-600 transition shadow">Portal Siswa</button>
+                <button onclick="requestPinGuru()" id="btnRoleGuru" class="px-4 py-1.5 rounded-lg text-sm font-medium bg-indigo-900 border border-indigo-600 transition shadow">Panel Guru</button>
+                <button onclick="switchRole('siswa')" id="btnRoleSiswa" class="px-4 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 hover:bg-indigo-500 transition shadow">Portal Siswa</button>
             </div>
         </div>
     </header>
@@ -58,7 +58,7 @@
     <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6">
         
         <!-- ================= PANEL GURU ================= -->
-        <section id="panelGuru" class="space-y-6 hidden">
+        <section id="panelGuru" class="space-y-6">
             <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
                 <div class="flex items-center space-x-3">
                     <span class="inline-block w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></span>
@@ -66,6 +66,9 @@
                 </div>
                 <div class="flex flex-wrap gap-2">
                     <button onclick="openMasterModal()" class="px-3.5 py-2 rounded-lg text-sm font-bold bg-amber-500 hover:bg-amber-600 text-white transition shadow"><i class="fa-solid fa-gears mr-1.5"></i>Kelola Master Data</button>
+                    <!-- Tombol Reset Semua Data Ditambahkan di Sini -->
+                    <button onclick="resetSemuaDataAplikasi()" class="px-3.5 py-2 rounded-lg text-sm font-bold bg-rose-600 hover:bg-rose-700 text-white transition shadow"><i class="fa-solid fa-trash-can mr-1.5"></i>Reset Semua Data</button>
+                    
                     <button onclick="switchGuruTab('tabBankSoal')" class="guru-tab px-4 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white" data-tab="tabBankSoal"><i class="fa-solid fa-book mr-2"></i>Bank Soal & Kontrol Ujian</button>
                     <button onclick="switchGuruTab('tabSiswa')" class="guru-tab px-4 py-2 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200" data-tab="tabSiswa"><i class="fa-solid fa-users mr-2"></i>Data Siswa</button>
                     <button onclick="switchGuruTab('tabKoreksi')" class="guru-tab px-4 py-2 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 relative" data-tab="tabKoreksi">
@@ -276,7 +279,7 @@
         </section>
 
         <!-- ================= PANEL SISWA ================= -->
-        <section id="panelSiswa" class="space-y-6">
+        <section id="panelSiswa" class="space-y-6 hidden">
             
             <!-- 1. Form Login Siswa -->
             <div id="siswaLoginCard" class="max-w-md mx-auto bg-white rounded-3xl shadow-xl border border-indigo-100 overflow-hidden mt-8 transition-all">
@@ -527,23 +530,23 @@
     <!-- Script Aplikasi Utama -->
     <script>
         let state = {
-            role: 'siswa', // Default role langsung ke Portal Siswa saat pertama dimuat
+            role: 'guru',
             activeGuruTab: 'tabBankSoal',
             master: {
                 tp: ['2025/2026', '2026/2027'],
-                kelas: ['Kelas 1', 'Kelas 4', 'Kelas X', 'Kelas XI', 'Kelas XII'],
+                kelas: ['Kelas 1', 'Kelas X', 'Kelas XI', 'Kelas XII'],
                 bab: ['Bab 1 - Pengantar', 'Bab 2 - Evaluasi']
             },
             soalList: [
-                { id: '1', tp: '2025/2026', sem: 'Ganjil', kelas: 'Kelas 4', bab: 'Bab 1 - Pengantar', jenis: 'Pilihan Ganda', tanya: 'Berapakah hasil dari 5 + 5 x 2?', opsi: { A: '15', B: '20', C: '10', D: '25' }, kunci: 'A', bobot: 10 },
-                { id: '2', tp: '2025/2026', sem: 'Ganjil', kelas: 'Kelas 4', bab: 'Bab 1 - Pengantar', jenis: 'Anagram', tanya: 'Susun huruf acak berikut menjadi kata yang benar:', kunci: 'KOMPUTER', bobot: 20 },
-                { id: '3', tp: '2025/2026', sem: 'Ganjil', kelas: 'Kelas 4', bab: 'Bab 1 - Pengantar', jenis: 'Card Matching', tanya: 'RAM', kunci: 'Memori Utama', bobot: 15 }
+                { id: '1', tp: '2025/2026', sem: 'Ganjil', kelas: 'Kelas 1', bab: 'Bab 1 - Pengantar', jenis: 'Pilihan Ganda', tanya: 'Berapakah hasil dari 5 + 5 x 2?', opsi: { A: '15', B: '20', C: '10', D: '25' }, kunci: 'A', bobot: 10 },
+                { id: '2', tp: '2025/2026', sem: 'Ganjil', kelas: 'Kelas 1', bab: 'Bab 1 - Pengantar', jenis: 'Anagram', tanya: 'Susun huruf acak berikut menjadi kata yang benar:', kunci: 'KOMPUTER', bobot: 20 },
+                { id: '3', tp: '2025/2026', sem: 'Ganjil', kelas: 'Kelas 1', bab: 'Bab 1 - Pengantar', jenis: 'Card Matching', tanya: 'RAM', kunci: 'Memori Utama', bobot: 15 }
             ],
             siswaList: [
-                { id: 's1', nisn: '1001', nama: 'Ahmad Fauzi (Demo)', kelas: 'Kelas 4' }
+                { id: 's1', nisn: '1001', nama: 'Ahmad Fauzi (Demo)', kelas: 'Kelas 1' }
             ],
             settingsList: {
-                '2025/2026_Ganjil_Kelas 4_Bab 1 - Pengantar_Pilihan Ganda': { aktif: true, durasi: 30 }
+                '2025/2026_Ganjil_Kelas 1_Bab 1 - Pengantar_Pilihan Ganda': { aktif: true, durasi: 30 }
             },
             nilaiList: [],
             currentSiswa: null,
@@ -556,19 +559,10 @@
             loadSavedFirebaseConfig();
             renderMasterDropdowns();
             setupFilterListeners();
-
-            // PENDETEKSI URL PARAMETER (?role=guru atau ?role=siswa)
-            const urlParams = new URLSearchParams(window.location.search);
-            const roleParam = urlParams.get('role');
-            
-            if (roleParam === 'guru') {
-                switchRole('guru');
-            } else {
-                switchRole('siswa'); // Default: Tampilkan Portal Siswa saat dibagikan
-            }
-            
+            renderGuru();
             updatePendingBadge();
             
+            const urlParams = new URLSearchParams(window.location.search);
             if(urlParams.get('demo') === 'true') {
                 triggerDemoMode();
             }
@@ -595,6 +589,24 @@
             }
         }
 
+        // FUNGSI RESET SEMUA DATA APLIKASI
+        function resetSemuaDataAplikasi() {
+            if(confirm("PERINGATAN KERAS!\n\nTindakan ini akan menghapus SELURUH data (Master data, Bank Soal, Data Siswa, Rekap Nilai, dan Konfigurasi Firebase) yang tersimpan di browser ini.\n\nApakah Anda yakin ingin melanjutkan?")) {
+                localStorage.removeItem('app_ujian_dynamic_demo');
+                localStorage.removeItem('app_firebase_config');
+                
+                for(let i = 0; i < localStorage.length; i++) {
+                    let key = localStorage.key(i);
+                    if(key && (key.includes('ujian') || key.includes('dapodik') || key.includes('nilai'))) {
+                        localStorage.removeItem(key);
+                    }
+                }
+                
+                alert("Semua data berhasil dibersihkan! Halaman akan dimuat ulang.");
+                window.location.reload();
+            }
+        }
+
         function requestPinGuru() {
             const pinInput = prompt("Masukkan PIN Panel Guru:");
             if(pinInput === "240785") {
@@ -605,7 +617,7 @@
         }
 
         function triggerDemoMode() {
-            const defaultKey = '2025/2026_Ganjil_Kelas 4_Bab 1 - Pengantar_Pilihan Ganda';
+            const defaultKey = '2025/2026_Ganjil_Kelas 1_Bab 1 - Pengantar_Pilihan Ganda';
             state.settingsList[defaultKey] = { aktif: true, durasi: 15 };
             saveToStorage();
             
@@ -1254,21 +1266,12 @@
         }
 
         function populateSiswaDropdown() {
-            const selectKelas = document.getElementById('siswaLoginKelas');
-            const kelasTerpilihSebelumnya = selectKelas.value;
-            
-            selectKelas.innerHTML = state.master.kelas.map(k => `<option value="${k}">${k}</option>`).join('');
-            
-            if (state.master.kelas.includes(kelasTerpilihSebelumnya)) {
-                selectKelas.value = kelasTerpilihSebelumnya;
-            }
-
-            const kelas = selectKelas.value;
-            const selectNama = document.getElementById('siswaLoginNama');
-            selectNama.innerHTML = '<option value="">-- Pilih Nama Anda --</option>';
-            
+            document.getElementById('siswaLoginKelas').innerHTML = state.master.kelas.map(k => `<option value="${k}">${k}</option>`).join('');
+            const kelas = document.getElementById('siswaLoginKelas').value;
+            const select = document.getElementById('siswaLoginNama');
+            select.innerHTML = '<option value="">-- Pilih Nama Anda --</option>';
             state.siswaList.filter(s => s.kelas === kelas).forEach(s => {
-                selectNama.innerHTML += `<option value="${s.id}">${s.nama} (${s.nisn})</option>`;
+                select.innerHTML += `<option value="${s.id}">${s.nama} (${s.nisn})</option>`;
             });
         }
 
