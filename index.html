@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aplikasi Ujian & Kuis Siswa Dynamic Pro</title>
 
-    <!-- ========================================== -->
-    <!-- FAVICON & PRATINJAU WHATSAPP (OG IMAGE)    -->
-    <!-- ========================================== -->
+    <!-- FAVICON & PRATINJAU WHATSAPP (OG IMAGE) -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/mlisin06/quizmaster-web/main/logo-ujian-dynamic-pro.jpg">
     <meta property="og:title" content="Aplikasi Ujian & Kuis Siswa Dynamic Pro">
     <meta property="og:description" content="Sistem Evaluasi Multi-Jenis Kuis & Master Data Dinamis">
@@ -66,7 +64,7 @@
                 </div>
                 <div class="flex flex-wrap gap-2">
                     <button onclick="openMasterModal()" class="px-3.5 py-2 rounded-lg text-sm font-bold bg-amber-500 hover:bg-amber-600 text-white transition shadow"><i class="fa-solid fa-gears mr-1.5"></i>Kelola Master Data</button>
-                    <button onclick="resetSemuaDataAplikasi()" class="px-3.5 py-2 rounded-lg text-sm font-bold bg-rose-600 hover:bg-rose-700 text-white transition shadow"><i class="fa-solid fa-trash-can mr-1.5"></i>Reset Semua Data</button>
+                    <button onclick="openResetModal()" class="px-3.5 py-2 rounded-lg text-sm font-bold bg-rose-600 hover:bg-rose-700 text-white transition shadow"><i class="fa-solid fa-rotate-left mr-1.5"></i>Reset Data Per Fitur</button>
                     
                     <button onclick="switchGuruTab('tabBankSoal')" class="guru-tab px-4 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white" data-tab="tabBankSoal"><i class="fa-solid fa-book mr-2"></i>Bank Soal & Kontrol Ujian</button>
                     <button onclick="switchGuruTab('tabSiswa')" class="guru-tab px-4 py-2 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200" data-tab="tabSiswa"><i class="fa-solid fa-users mr-2"></i>Data Siswa</button>
@@ -406,6 +404,63 @@
         </section>
     </main>
 
+    <!-- MODAL OPSI RESET DATA PER FITUR -->
+    <div id="resetModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden p-6 space-y-5">
+            <div class="flex justify-between items-center border-b pb-3">
+                <div class="flex items-center space-x-2 text-rose-600 font-bold text-lg">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span>Reset Data Per Fitur</span>
+                </div>
+                <button onclick="closeResetModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <p class="text-xs text-slate-500">Pilih fitur khusus yang ingin Anda kosongkan. Data pada fitur lain tidak akan terpengaruh.</p>
+
+            <div class="space-y-3">
+                <!-- Reset Soal -->
+                <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <h4 class="font-bold text-sm text-slate-800">Bank Soal</h4>
+                        <p class="text-[11px] text-slate-500">Hapus seluruh soal ujian yang tersimpan.</p>
+                    </div>
+                    <button onclick="resetFitur('soal')" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition shadow">Reset Soal</button>
+                </div>
+
+                <!-- Reset Siswa -->
+                <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <h4 class="font-bold text-sm text-slate-800">Data Siswa</h4>
+                        <p class="text-[11px] text-slate-500">Hapus seluruh daftar siswa dan kelas.</p>
+                    </div>
+                    <button onclick="resetFitur('siswa')" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition shadow">Reset Siswa</button>
+                </div>
+
+                <!-- Reset Nilai -->
+                <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <h4 class="font-bold text-sm text-slate-800">Rekap Nilai & Koreksi</h4>
+                        <p class="text-[11px] text-slate-500">Hapus semua hasil ujian & riwayat nilai.</p>
+                    </div>
+                    <button onclick="resetFitur('nilai')" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition shadow">Reset Nilai</button>
+                </div>
+
+                <!-- Reset Semuanya -->
+                <div class="p-3.5 bg-rose-50 rounded-2xl border border-rose-200 flex items-center justify-between">
+                    <div>
+                        <h4 class="font-bold text-sm text-rose-800">Reset Total (Semua Fitur)</h4>
+                        <p class="text-[11px] text-rose-600">Kosongkan seluruh database aplikasi.</p>
+                    </div>
+                    <button onclick="resetSemuaDataAplikasi()" class="px-3 py-1.5 bg-rose-800 hover:bg-rose-900 text-white text-xs font-bold rounded-xl transition shadow">Reset Total</button>
+                </div>
+            </div>
+
+            <div class="pt-2 border-t flex justify-end">
+                <button onclick="closeResetModal()" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold">Tutup</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL KONFIRMASI KIRIM UJIAN -->
     <div id="modalKonfirmasiKirim" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden p-6 text-center space-y-4">
@@ -539,7 +594,7 @@
         };
 
         let state = {
-            role: 'siswa', // Default awal diatur ke Portal Siswa
+            role: 'siswa',
             activeGuruTab: 'tabBankSoal',
             master: {
                 tp: ['2025/2026', '2026/2027'],
@@ -570,14 +625,13 @@
             setupFilterListeners();
             updatePendingBadge();
             
-            // PENDETEKSI URL PARAMETER (?role=guru atau ?role=siswa)
             const urlParams = new URLSearchParams(window.location.search);
             const roleParam = urlParams.get('role');
             
             if (roleParam === 'guru') {
                 switchRole('guru');
             } else {
-                switchRole('siswa'); // Default: Mengarahkan langsung ke Portal Siswa
+                switchRole('siswa');
             }
             
             if(urlParams.get('demo') === 'true') {
@@ -620,19 +674,48 @@
             }
         }
 
-        // FUNGSI RESET SEMUA DATA APLIKASI
+        // FUNGSI MODAL RESET PER FITUR
+        function openResetModal() { document.getElementById('resetModal').classList.remove('hidden'); }
+        function closeResetModal() { document.getElementById('resetModal').classList.add('hidden'); }
+
+        function resetFitur(fitur) {
+            if (fitur === 'soal') {
+                if(confirm("Apakah Anda yakin ingin menghapus SEMUA Bank Soal?")) {
+                    state.soalList = [];
+                    saveToStorage();
+                    renderGuru();
+                    alert("Bank Soal berhasil dikosongkan!");
+                }
+            } else if (fitur === 'siswa') {
+                if(confirm("Apakah Anda yakin ingin menghapus SEMUA Data Siswa?")) {
+                    state.siswaList = [];
+                    saveToStorage();
+                    renderGuru();
+                    alert("Data Siswa berhasil dikosongkan!");
+                }
+            } else if (fitur === 'nilai') {
+                if(confirm("Apakah Anda yakin ingin menghapus SEMUA Rekap Nilai & Koreksi?")) {
+                    state.nilaiList = [];
+                    saveToStorage();
+                    renderGuru();
+                    if(typeof renderRekapGuru === 'function') renderRekapGuru();
+                    if(typeof renderKoreksiGuru === 'function') renderKoreksiGuru();
+                    alert("Rekap Nilai & Koreksi berhasil dikosongkan!");
+                }
+            }
+            closeResetModal();
+        }
+
         function resetSemuaDataAplikasi() {
-            if(confirm("PERINGATAN KERAS!\n\nTindakan ini akan menghapus SELURUH data (Master data, Bank Soal, Data Siswa, dan Rekap Nilai) yang tersimpan di browser ini.\n\nApakah Anda yakin ingin melanjutkan?")) {
+            if(confirm("PERINGATAN KERAS!\n\nTindakan ini akan menghapus SELURUH data (Master data, Bank Soal, Data Siswa, dan Rekap Nilai).\n\nApakah Anda yakin ingin melanjutkan?")) {
                 localStorage.removeItem('app_ujian_dynamic_demo');
-                
                 for(let i = 0; i < localStorage.length; i++) {
                     let key = localStorage.key(i);
                     if(key && (key.includes('ujian') || key.includes('dapodik') || key.includes('nilai'))) {
                         localStorage.removeItem(key);
                     }
                 }
-                
-                alert("Semua data berhasil dibersihkan! Halaman akan dimuat ulang.");
+                alert("Semua data aplikasi berhasil dibersihkan!");
                 window.location.reload();
             }
         }
@@ -852,7 +935,6 @@
             updatePendingBadge();
         }
 
-        // FUNGSI REKAP NILAI DENGAN PENCARIAN FLEKSIBEL BERDASARKAN SISWA & BAB
         function renderRekapGuru() {
             const tbody = document.getElementById('tabelRekapBody');
             if(!tbody) return;
@@ -911,7 +993,6 @@
             });
         }
 
-        // FUNGSI EKSPOR CSV PROFESIONAL
         function exportRekapCSV() {
             const kelasAktif = document.getElementById('filterKelas').value;
             const tpAktif = document.getElementById('filterTp').value;
@@ -960,7 +1041,6 @@
             document.body.removeChild(link);
         }
 
-        // FUNGSI KOREKSI GURU
         function renderKoreksiGuru() {
             const tbody = document.getElementById('tabelKoreksiBody');
             if(!tbody) return;
@@ -1216,7 +1296,7 @@
             } else if (jenis === 'Anagram') {
                 csvContent += "Pertanyaan,KunciKata,Bobot\n";
                 csvContent += "Susun huruf acak berikut menjadi perangkat keras komputer:,KOMPUTER,20\n";
-                csvContent += "Susun huruf acak berikut menjadi bahasa pemrograman:,PYTHON,20";
+                csvContent += "Susun huruf acak mejadi bahasa pemrograman:,PYTHON,20";
             } else if (jenis === 'Card Matching') {
                 csvContent += "Pertanyaan,Pasangan,Bobot\n";
                 csvContent += "RAM,Memori Utama,15\n";
@@ -1400,13 +1480,11 @@
                     gridHtml += `
                         <div onclick="flipCard(this)" data-id="${card.pairId}" data-type="${card.tipe}" class="h-32 cursor-pointer perspective-1000">
                             <div class="relative w-full h-full duration-500 transform-style-3d card-inner shadow-md rounded-2xl">
-                                <!-- Sisi Depan Kartu (Tertutup) -->
                                 <div class="absolute inset-0 w-full h-full bg-gradient-to-br from-indigo-600 to-violet-700 text-white rounded-2xl flex flex-col items-center justify-center p-3 backface-hidden border-2 border-indigo-400">
                                     <i class="fa-solid fa-clone text-2xl mb-1 text-indigo-200"></i>
                                     <span class="text-xs font-bold tracking-wider">KARTU #${cIdx + 1}</span>
                                     <span class="text-[10px] text-indigo-200">Klik untuk buka</span>
                                 </div>
-                                <!-- Sisi Belakang Kartu (Terbuka / Isi Kartu) -->
                                 <div class="absolute inset-0 w-full h-full bg-white text-slate-800 rounded-2xl flex items-center justify-center p-4 text-center font-bold text-sm backface-hidden rotate-y-180 border-2 border-slate-200 shadow-inner">
                                     ${card.teks}
                                 </div>
@@ -1489,7 +1567,6 @@
             }, 1000);
         }
 
-        // Logika Interaktif Buka-Tutup Kartu 3D
         let firstCard = null;
         let secondCard = null;
         let lockBoard = false;
@@ -1565,7 +1642,6 @@
             document.getElementById('modalKonfirmasiKirim').classList.add('hidden');
         }
 
-        // FUNGSI EKSEKUSI KIRIM UJIAN
         function eksekusiKirimUjian(isAutoSubmit = false) {
             document.getElementById('modalKonfirmasiKirim').classList.add('hidden');
             if(state.timerInterval) clearInterval(state.timerInterval);
