@@ -418,7 +418,6 @@
             <p class="text-xs text-slate-500">Pilih fitur khusus yang ingin Anda kosongkan. Data pada fitur lain tidak akan terpengaruh.</p>
 
             <div class="space-y-3">
-                <!-- Reset Soal -->
                 <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
                     <div>
                         <h4 class="font-bold text-sm text-slate-800">Bank Soal</h4>
@@ -427,7 +426,6 @@
                     <button onclick="resetFitur('soal')" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition shadow">Reset Soal</button>
                 </div>
 
-                <!-- Reset Siswa -->
                 <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
                     <div>
                         <h4 class="font-bold text-sm text-slate-800">Data Siswa</h4>
@@ -436,7 +434,6 @@
                     <button onclick="resetFitur('siswa')" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition shadow">Reset Siswa</button>
                 </div>
 
-                <!-- Reset Nilai -->
                 <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
                     <div>
                         <h4 class="font-bold text-sm text-slate-800">Rekap Nilai & Koreksi</h4>
@@ -445,7 +442,6 @@
                     <button onclick="resetFitur('nilai')" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition shadow">Reset Nilai</button>
                 </div>
 
-                <!-- Reset Semuanya -->
                 <div class="p-3.5 bg-rose-50 rounded-2xl border border-rose-200 flex items-center justify-between">
                     <div>
                         <h4 class="font-bold text-sm text-rose-800">Reset Total (Semua Fitur)</h4>
@@ -593,25 +589,18 @@
             appId: "1:674273669035:web:3a17c0e0bdc6e26aef6cee"
         };
 
+        // STATE BERSIH (TANPA DATA DUMMY BAWAAN)
         let state = {
             role: 'siswa',
             activeGuruTab: 'tabBankSoal',
             master: {
                 tp: ['2025/2026', '2026/2027'],
-                kelas: ['Kelas 1', 'Kelas X', 'Kelas XI', 'Kelas XII'],
-                bab: ['Bab 1 - Pengantar', 'Bab 2 - Evaluasi']
+                kelas: ['Kelas 1', 'Kelas 2', 'Kelas 3', 'Kelas 4', 'Kelas 5', 'Kelas 6'],
+                bab: ['Bab 1', 'Bab 2', 'Bab 3']
             },
-            soalList: [
-                { id: '1', tp: '2025/2026', sem: 'Ganjil', kelas: 'Kelas 1', bab: 'Bab 1 - Pengantar', jenis: 'Pilihan Ganda', tanya: 'Berapakah hasil dari 5 + 5 x 2?', opsi: { A: '15', B: '20', C: '10', D: '25' }, kunci: 'A', bobot: 10 },
-                { id: '2', tp: '2025/2026', sem: 'Ganjil', kelas: 'Kelas 1', bab: 'Bab 1 - Pengantar', jenis: 'Anagram', tanya: 'Susun huruf acak berikut menjadi kata yang benar:', kunci: 'KOMPUTER', bobot: 20 },
-                { id: '3', tp: '2025/2026', sem: 'Ganjil', kelas: 'Kelas 1', bab: 'Bab 1 - Pengantar', jenis: 'Card Matching', tanya: 'RAM', kunci: 'Memori Utama', bobot: 15 }
-            ],
-            siswaList: [
-                { id: 's1', nisn: '1001', nama: 'Ahmad Fauzi (Demo)', kelas: 'Kelas 1' }
-            ],
-            settingsList: {
-                '2025/2026_Ganjil_Kelas 1_Bab 1 - Pengantar_Pilihan Ganda': { aktif: true, durasi: 30 }
-            },
+            soalList: [],
+            siswaList: [],
+            settingsList: {},
             nilaiList: [],
             currentSiswa: null,
             timerInterval: null,
@@ -674,7 +663,6 @@
             }
         }
 
-        // FUNGSI MODAL RESET PER FITUR
         function openResetModal() { document.getElementById('resetModal').classList.remove('hidden'); }
         function closeResetModal() { document.getElementById('resetModal').classList.add('hidden'); }
 
@@ -730,17 +718,8 @@
         }
 
         function triggerDemoMode() {
-            const defaultKey = '2025/2026_Ganjil_Kelas 1_Bab 1 - Pengantar_Pilihan Ganda';
-            state.settingsList[defaultKey] = { aktif: true, durasi: 15 };
             saveToStorage();
-            
             switchRole('siswa');
-            setTimeout(() => {
-                const selectNama = document.getElementById('siswaLoginNama');
-                if(selectNama && selectNama.options.length > 1) {
-                    selectNama.selectedIndex = 1;
-                }
-            }, 100);
         }
 
         function requestFullscreen() {
@@ -1296,7 +1275,7 @@
             } else if (jenis === 'Anagram') {
                 csvContent += "Pertanyaan,KunciKata,Bobot\n";
                 csvContent += "Susun huruf acak berikut menjadi perangkat keras komputer:,KOMPUTER,20\n";
-                csvContent += "Susun huruf acak mejadi bahasa pemrograman:,PYTHON,20";
+                csvContent += "Susun huruf acak menjadi bahasa pemrograman:,PYTHON,20";
             } else if (jenis === 'Card Matching') {
                 csvContent += "Pertanyaan,Pasangan,Bobot\n";
                 csvContent += "RAM,Memori Utama,15\n";
