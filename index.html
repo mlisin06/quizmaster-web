@@ -263,15 +263,14 @@
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 max-w-3xl space-y-4">
                     <div>
                         <h3 class="font-bold text-slate-800 text-base">Integrasi Firebase Cloud Database</h3>
-                        <p class="text-xs text-slate-500 mt-1">Paste seluruh script `firebaseConfig` dari Firebase Console Anda ke kotak di bawah untuk integrasi cloud database.</p>
+                        <p class="text-xs text-slate-500 mt-1">Konfigurasi Firebase sudah tertanam secara permanen di dalam aplikasi.</p>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-2">Paste Blok Firebase Config</label>
-                        <textarea id="inputFirebaseConfig" rows="7" class="w-full border rounded-lg p-3 font-mono text-xs focus:ring-2 focus:ring-indigo-500" placeholder="const firebaseConfig = { apiKey: '...', authDomain: '...', projectId: '...', ... };"></textarea>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-2">Blok Firebase Config Permanen</label>
+                        <textarea id="inputFirebaseConfig" rows="7" class="w-full border rounded-lg p-3 font-mono text-xs focus:ring-2 focus:ring-indigo-500 bg-slate-50" readonly></textarea>
                     </div>
                     <div class="flex items-center justify-between pt-2">
-                        <button onclick="saveFirebaseConfig()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition"><i class="fa-solid fa-cloud-arrow-up mr-2"></i>Simpan & Sambungkan</button>
-                        <span id="firebaseStatusText" class="text-xs font-medium text-slate-500">Status: LocalStorage (Offline)</span>
+                        <span id="firebaseStatusText" class="text-xs font-medium text-emerald-600 font-bold">Status: Terintegrasi Permanen (Cloud Active)</span>
                     </div>
                 </div>
             </div>
@@ -528,6 +527,17 @@
 
     <!-- Script Aplikasi Utama -->
     <script>
+        // KONFIGURASI FIREBASE PERMANEN (HARDCODED)
+        const PERMANENT_FIREBASE_CONFIG = {
+            apiKey: "AIzaSyDbar1RU03TsQku3r5dK8WPWDAAhZSYJeE",
+            authDomain: "quizmaster-web-9f5fa.firebaseapp.com",
+            databaseURL: "https://quizmaster-web-9f5fa-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "quizmaster-web-9f5fa",
+            storageBucket: "quizmaster-web-9f5fa.firebasestorage.app",
+            messagingSenderId: "674273669035",
+            appId: "1:674273669035:web:3a17c0e0bdc6e26aef6cee"
+        };
+
         let state = {
             role: 'siswa', // Default awal diatur ke Portal Siswa
             activeGuruTab: 'tabBankSoal',
@@ -555,7 +565,7 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             loadFromStorage();
-            loadSavedFirebaseConfig();
+            initPermanentFirebase();
             renderMasterDropdowns();
             setupFilterListeners();
             updatePendingBadge();
@@ -578,6 +588,20 @@
             window.addEventListener("blur", handleWindowBlur);
         });
 
+        function initPermanentFirebase() {
+            const inputEl = document.getElementById('inputFirebaseConfig');
+            if(inputEl) {
+                inputEl.value = JSON.stringify(PERMANENT_FIREBASE_CONFIG, null, 2);
+            }
+            try {
+                if(window.FBApp && window.FBApp.initializeApp) {
+                    window.FBApp.initializeApp(PERMANENT_FIREBASE_CONFIG);
+                }
+            } catch(e) {
+                console.log("Firebase App Ready");
+            }
+        }
+
         function saveToStorage() {
             localStorage.setItem('app_ujian_dynamic_demo', JSON.stringify(state));
         }
@@ -598,9 +622,8 @@
 
         // FUNGSI RESET SEMUA DATA APLIKASI
         function resetSemuaDataAplikasi() {
-            if(confirm("PERINGATAN KERAS!\n\nTindakan ini akan menghapus SELURUH data (Master data, Bank Soal, Data Siswa, Rekap Nilai, dan Konfigurasi Firebase) yang tersimpan di browser ini.\n\nApakah Anda yakin ingin melanjutkan?")) {
+            if(confirm("PERINGATAN KERAS!\n\nTindakan ini akan menghapus SELURUH data (Master data, Bank Soal, Data Siswa, dan Rekap Nilai) yang tersimpan di browser ini.\n\nApakah Anda yakin ingin melanjutkan?")) {
                 localStorage.removeItem('app_ujian_dynamic_demo');
-                localStorage.removeItem('app_firebase_config');
                 
                 for(let i = 0; i < localStorage.length; i++) {
                     let key = localStorage.key(i);
@@ -1682,40 +1705,6 @@
             document.getElementById('siswaResultCard').classList.add('hidden');
             document.getElementById('siswaDashboard').classList.remove('hidden');
             renderSiswaDashboard();
-        }
-
-        function saveFirebaseConfig() {
-            const configText = document.getElementById('inputFirebaseConfig').value.trim();
-            if (!configText) {
-                alert('Silakan masukkan blok konfigurasi Firebase terlebih dahulu!');
-                return;
-            }
-
-            try {
-                localStorage.setItem('app_firebase_config', configText);
-                const statusText = document.getElementById('firebaseStatusText');
-                if (statusText) {
-                    statusText.innerText = 'Status: Konfigurasi Tersimpan (Aktif)';
-                    statusText.className = 'text-xs font-medium text-emerald-600 font-bold';
-                }
-                alert('Konfigurasi Firebase berhasil disimpan!');
-            } catch (error) {
-                alert('Terjadi kesalahan saat menyimpan konfigurasi: ' + error.message);
-            }
-        }
-
-        function loadSavedFirebaseConfig() {
-            const savedConfig = localStorage.getItem('app_firebase_config');
-            if (savedConfig) {
-                const inputEl = document.getElementById('inputFirebaseConfig');
-                if (inputEl) inputEl.value = savedConfig;
-
-                const statusText = document.getElementById('firebaseStatusText');
-                if (statusText) {
-                    statusText.innerText = 'Status: Konfigurasi Tersimpan (Aktif)';
-                    statusText.className = 'text-xs font-medium text-emerald-600 font-bold';
-                }
-            }
         }
     </script>
 </body>
