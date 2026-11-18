@@ -1402,13 +1402,21 @@
             reader.readAsText(file);
         }
 
-        function populateSiswaDropdown() {
-            document.getElementById('siswaLoginKelas').innerHTML = state.master.kelas.map(k => `<option value="${k}">${k}</option>`).join('');
-            const kelas = document.getElementById('siswaLoginKelas').value;
-            const select = document.getElementById('siswaLoginNama');
-            select.innerHTML = '<option value="">-- Pilih Nama Anda --</option>';
-            state.siswaList.filter(s => s.kelas === kelas).forEach(s => {
-                select.innerHTML += `<option value="${s.id}">${s.nama} (${s.nisn})</option>`;
+       function populateSiswaDropdown() {
+            const kelasSelect = document.getElementById('siswaLoginKelas');
+            
+            // Jika elemen dropdown kelas masih kosong, isi dulu opsi kelasnya dari data master
+            if (kelasSelect.options.length === 0) {
+                kelasSelect.innerHTML = state.master.kelas.map(k => `<option value="${k}">${k}</option>`).join('');
+            }
+            
+            const kelasPilihan = kelasSelect.value;
+            const selectNama = document.getElementById('siswaLoginNama');
+            selectNama.innerHTML = '<option value="">-- Pilih Nama Anda --</option>';
+            
+            // Saring dan tampilkan data siswa sesuai kelas yang sedang dipilih di dropdown
+            state.siswaList.filter(s => s.kelas === kelasPilihan).forEach(s => {
+                selectNama.innerHTML += `<option value="${s.id}">${s.nama} (${s.nisn})</option>`;
             });
         }
 
