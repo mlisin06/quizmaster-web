@@ -20,8 +20,8 @@
     <!-- Firebase SDK v11 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, setDoc, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-        window.FBApp = { initializeApp, getFirestore, collection, getDocs, setDoc, doc, deleteDoc, updateDoc };
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        window.FBApp = { initializeApp, getFirestore, doc, setDoc, getDoc, onSnapshot };
     </script>
     <style>
         .perspective-1000 { perspective: 1000px; }
@@ -268,7 +268,7 @@
                         <textarea id="inputFirebaseConfig" rows="7" class="w-full border rounded-lg p-3 font-mono text-xs focus:ring-2 focus:ring-indigo-500 bg-slate-50" readonly></textarea>
                     </div>
                     <div class="flex items-center justify-between pt-2">
-                        <span id="firebaseStatusText" class="text-xs font-medium text-emerald-600 font-bold">Status: Terintegrasi Permanen (Cloud Active)</span>
+                        <span id="firebaseStatusText" class="text-xs font-medium text-emerald-600 font-bold">Status: Terintegrasi Cloud Realtime (Active)</span>
                     </div>
                 </div>
             </div>
@@ -589,7 +589,7 @@
             appId: "1:674273669035:web:3a17c0e0bdc6e26aef6cee"
         };
 
-        // STATE BERSIH (TANPA DATA DUMMY BAWAAN)
+        // STATE BERSIH (DATA UTAMA)
         let state = {
             role: 'siswa',
             activeGuruTab: 'tabBankSoal',
@@ -606,6 +606,8 @@
             timerInterval: null,
             cheatViolationCount: 0
         };
+
+        let isFirebaseInitialized = false;
 
         window.addEventListener('DOMContentLoaded', () => {
             loadFromStorage();
@@ -631,6 +633,7 @@
             window.addEventListener("blur", handleWindowBlur);
         });
 
+        // INSIALISASI DAN SINKRONISASI REALTIME FIREBASE CLOUD
         function initPermanentFirebase() {
             const inputEl = document.getElementById('inputFirebaseConfig');
             if(inputEl) {
@@ -638,15 +641,55 @@
             }
             try {
                 if(window.FBApp && window.FBApp.initializeApp) {
-                    window.FBApp.initializeApp(PERMANENT_FIREBASE_CONFIG);
+                    const app = window.FBApp.initializeApp(PERMANENT_FIREBASE_CONFIG);
+                    const db = window.FBApp.getFirestore(app);
+                    isFirebaseInitialized = true;
+
+                    // Menerapkan Realtime Listener (Otomatis update di HP siswa saat guru mengubah data)
+                    window.FBApp.onSnapshot(window.FBApp.doc(db, "app_data", "master_state"), (docSnap) => {
+                        if (docSnap.exists()) {
+                            const cloudData = docSnap.data();
+                            state.master = cloudData.master || state.master;
+                            state.soalList = cloudData.soalList || [];
+                            state.siswaList = cloudData.siswaList || [];
+                            state.settingsList = cloudData.settingsList || {};
+                            state.nilaiList = cloudData.nilaiList || [];
+
+                            // Simpan juga ke cache lokal
+                            localStorage.setItem('app_ujian_dynamic_demo', JSON.stringify(state));
+
+                            // Refresh tampilan UI secara otomatis
+                            renderMasterDropdowns();
+                            if(state.role === 'guru') {
+                                renderGuru();
+                                if(state.activeGuruTab === 'tabRekap') renderRekapGuru();
+                                if(state.activeGuruTab === 'tabKoreksi') renderKoreksiGuru();
+                            } else if(state.role === 'siswa') {
+                                populateSiswaDropdown();
+                                if(!document.getElementById('siswaDashboard').classList.contains('hidden')) {
+                                    renderSiswaDashboard();
+                                }
+                            }
+                        }
+                    });
                 }
             } catch(e) {
-                console.log("Firebase App Ready");
+                console.log("Firebase App Ready/Local Fallback Active", e);
             }
         }
 
-        function saveToStorage() {
+        // FUNGSI SIMPAN DATA (KE LOKAL & REALTIME CLOUD FIREBASE)
+        async function saveToStorage() {
             localStorage.setItem('app_ujian_dynamic_demo', JSON.stringify(state));
+
+            if(isFirebaseInitialized && window.FBApp) {
+                try {
+                    const db = window.FBApp.getFirestore();
+                    await window.FBApp.setDoc(window.FBApp.doc(db, "app_data", "master_state"), state);
+                } catch(e) {
+                    console.error("Gagal menyimpan ke Cloud Firebase:", e);
+                }
+            }
         }
 
         function loadFromStorage() {
@@ -655,10 +698,10 @@
                 try {
                     const parsed = JSON.parse(saved);
                     state.master = parsed.master || state.master;
-                    state.soalList = parsed.soalList || state.soalList;
-                    state.siswaList = parsed.siswaList || state.siswaList;
-                    state.settingsList = parsed.settingsList || state.settingsList;
-                    state.nilaiList = parsed.nilaiList || state.nilaiList;
+                    state.soalList = parsed.soalList || [];
+                    state.siswaList = parsed.siswaList || [];
+                    state.settingsList = parsed.settingsList || {};
+                    state.nilaiList = parsed.nilaiList || [];
                 } catch(e) {}
             }
         }
@@ -694,16 +737,21 @@
             closeResetModal();
         }
 
-        function resetSemuaDataAplikasi() {
+        async function resetSemuaDataAplikasi() {
             if(confirm("PERINGATAN KERAS!\n\nTindakan ini akan menghapus SELURUH data (Master data, Bank Soal, Data Siswa, dan Rekap Nilai).\n\nApakah Anda yakin ingin melanjutkan?")) {
-                localStorage.removeItem('app_ujian_dynamic_demo');
-                for(let i = 0; i < localStorage.length; i++) {
-                    let key = localStorage.key(i);
-                    if(key && (key.includes('ujian') || key.includes('dapodik') || key.includes('nilai'))) {
-                        localStorage.removeItem(key);
-                    }
-                }
-                alert("Semua data aplikasi berhasil dibersihkan!");
+                state.soalList = [];
+                state.siswaList = [];
+                state.settingsList = {};
+                state.nilaiList = [];
+                state.master = {
+                    tp: ['2025/2026', '2026/2027'],
+                    kelas: ['Kelas 1', 'Kelas 2', 'Kelas 3', 'Kelas 4', 'Kelas 5', 'Kelas 6'],
+                    bab: ['Bab 1', 'Bab 2', 'Bab 3']
+                };
+                
+                await saveToStorage();
+                localStorage.clear();
+                alert("Semua data aplikasi berhasil dibersihkan dari Cloud & Lokal!");
                 window.location.reload();
             }
         }
