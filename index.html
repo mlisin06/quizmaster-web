@@ -223,7 +223,7 @@
                 </div>
             </div>
 
-            <!-- TAB 4: REKAP NILAI -->
+            <!-- TAB 4: REKAP NILAI (DIPERBAIKI: EDIT & HAPUS NILAI) -->
             <div id="tabRekap" class="guru-content space-y-6 hidden">
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-4">
                     <div>
@@ -247,7 +247,7 @@
                                     <th class="p-3 text-center">Merangkum</th>
                                     <th class="p-3 text-center">Essay</th>
                                     <th class="p-3 text-center font-bold text-indigo-700">Rata-Rata</th>
-                                    <th class="p-3 text-center">Aksi</th>
+                                    <th class="p-3 text-center">Aksi Nilai</th>
                                 </tr>
                             </thead>
                             <tbody id="tabelRekapBody" class="divide-y divide-slate-200"></tbody>
@@ -457,6 +457,24 @@
         </div>
     </div>
 
+    <!-- MODAL EDIT NILAI GURU -->
+    <div id="editNilaiModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden p-6 space-y-4">
+            <h3 class="font-bold text-lg text-slate-800">Edit Nilai Siswa</h3>
+            <div class="space-y-3">
+                <p class="text-xs text-slate-600" id="modalEditNilaiDetail">Siswa: -</p>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nilai (0-100)</label>
+                    <input type="number" id="inputEditNilaiVal" min="0" max="100" class="w-full border rounded-lg p-2.5 text-sm font-bold" placeholder="Contoh: 85">
+                </div>
+            </div>
+            <div class="flex justify-end space-x-2 pt-2 border-t">
+                <button onclick="closeEditNilaiModal()" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm font-medium">Batal</button>
+                <button onclick="simpanEditNilaiModal()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium">Simpan Nilai</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL KONFIRMASI KIRIM UJIAN -->
     <div id="modalKonfirmasiKirim" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden p-6 text-center space-y-4">
@@ -608,6 +626,7 @@
         };
 
         let isFirebaseInitialized = false;
+        let selectedNilaiIdForEdit = null;
 
         window.addEventListener('DOMContentLoaded', () => {
             loadFromStorage();
@@ -645,7 +664,7 @@
                     const db = window.FBApp.getFirestore(app);
                     isFirebaseInitialized = true;
 
-                    // Realtime Listener: Otomatis memicu pembaruan UI ketika ada perubahan data di cloud
+                    // Realtime Listener
                     window.FBApp.onSnapshot(window.FBApp.doc(db, "app_data", "master_state"), (docSnap) => {
                         if (docSnap.exists()) {
                             const cloudData = docSnap.data();
@@ -655,10 +674,8 @@
                             state.settingsList = cloudData.settingsList || {};
                             state.nilaiList = cloudData.nilaiList || [];
 
-                            // Simpan juga ke cache browser lokal
                             localStorage.setItem('app_ujian_dynamic_demo', JSON.stringify(state));
 
-                            // Refresh tampilan UI secara otomatis
                             renderMasterDropdowns();
                             if(state.role === 'guru') {
                                 renderGuru();
@@ -678,7 +695,7 @@
             }
         }
 
-        // FUNGSI SIMPAN DATA (KE LOKAL & REALTIME CLOUD FIREBASE)
+        // FUNGSI SIMPAN DATA
         async function saveToStorage() {
             localStorage.setItem('app_ujian_dynamic_demo', JSON.stringify(state));
 
@@ -738,7 +755,7 @@
         }
 
         async function resetSemuaDataAplikasi() {
-            if(confirm("PERINGATAN KERAS!\n\nTindakan ini akan menghapus SELURUH data (Master data, Bank Soal, Data Siswa, dan Rekap Nilai).\n\nApakah Anda yakin ingin melanjutkan?")) {
+            if(confirm("PERINGATAN KERAS!\n\nTindakan ini akan menghapus SELURUH data.\n\nApakah Anda yakin ingin melanjutkan?")) {
                 state.soalList = [];
                 state.siswaList = [];
                 state.settingsList = {};
@@ -751,7 +768,7 @@
                 
                 await saveToStorage();
                 localStorage.clear();
-                alert("Semua data aplikasi berhasil dibersihkan dari Cloud & Lokal!");
+                alert("Semua data aplikasi berhasil dibersihkan!");
                 window.location.reload();
             }
         }
@@ -962,6 +979,7 @@
             updatePendingBadge();
         }
 
+        // TAB REKAP GURU (TOMBOL EDIT DAN HAPUS SPESIFIK NILAIS)
         function renderRekapGuru() {
             const tbody = document.getElementById('tabelRekapBody');
             if(!tbody) return;
@@ -969,6 +987,7 @@
 
             const kelasAktif = document.getElementById('filterKelas').value;
             const babAktif = document.getElementById('filterBab').value;
+            const jenisAktif = document.getElementById('filterJenis').value;
 
             const filteredSiswa = state.siswaList.filter(s => s.kelas === kelasAktif);
 
@@ -984,21 +1003,48 @@
                     return matchSiswa && matchBab;
                 });
 
-                const getNilaiByType = (keyword) => {
-                    const found = nilaiSiswa.find(n => n.jenis && n.jenis.toLowerCase().includes(keyword.toLowerCase()));
-                    if (!found) return '-';
-                    if (found.status === 'Menunggu Koreksi') return 'Pending';
-                    return (found.nilai !== null && found.nilai !== undefined && !isNaN(found.nilai)) ? Number(found.nilai) : '-';
+                const getNilaiEntry = (keyword) => {
+                    return nilaiSiswa.find(n => n.jenis && n.jenis.toLowerCase().includes(keyword.toLowerCase()));
                 };
 
-                const nPg = getNilaiByType('Pilihan Ganda');
-                const nAn = getNilaiByType('Anagram');
-                const nCard = getNilaiByType('Card');
-                const nSum = getNilaiByType('Rangkum');
-                const nEssay = getNilaiByType('Essay');
+                const formatCell = (entry) => {
+                    if (!entry) return '-';
+                    if (entry.status === 'Menunggu Koreksi') return '<span class="text-amber-600 font-bold">Pending</span>';
+                    return (entry.nilai !== null && entry.nilai !== undefined && !isNaN(entry.nilai)) ? Number(entry.nilai) : '-';
+                };
 
-                const angkaList = [nPg, nAn, nCard, nSum, nEssay].filter(v => typeof v === 'number');
+                const ePg = getNilaiEntry('Pilihan Ganda');
+                const eAn = getNilaiEntry('Anagram');
+                const eCard = getNilaiEntry('Card');
+                const eSum = getNilaiEntry('Rangkum');
+                const eEssay = getNilaiEntry('Essay');
+
+                const nPg = formatCell(ePg);
+                const nAn = formatCell(eAn);
+                const nCard = formatCell(eCard);
+                const nSum = formatCell(eSum);
+                const nEssay = formatCell(eEssay);
+
+                const angkaList = [ePg, eAn, eCard, eSum, eEssay]
+                    .filter(e => e && e.status !== 'Menunggu Koreksi' && e.nilai !== null && e.nilai !== undefined && !isNaN(e.nilai))
+                    .map(e => Number(e.nilai));
+                
                 const avg = angkaList.length > 0 ? Math.round(angkaList.reduce((a, b) => a + b, 0) / angkaList.length) : '-';
+
+                // Cari entry nilai untuk Jenis Kuis yang sedang aktif terpilih di filter
+                const entryFilterAktif = getNilaiEntry(jenisAktif);
+                let aksiButtons = '';
+
+                if (entryFilterAktif) {
+                    aksiButtons = `
+                        <div class="flex items-center justify-center space-x-1">
+                            <button onclick="openEditNilaiModal('${entryFilterAktif.id}', '${siswa.nama}', '${jenisAktif}', ${entryFilterAktif.nilai || 0})" class="px-2 py-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded text-xs font-semibold" title="Edit Nilai"><i class="fa-solid fa-pen"></i> Edit</button>
+                            <button onclick="hapusNilaiSpesifik('${entryFilterAktif.id}')" class="px-2 py-1 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded text-xs font-semibold" title="Hapus Nilai"><i class="fa-solid fa-trash"></i> Hapus</button>
+                        </div>
+                    `;
+                } else {
+                    aksiButtons = `<span class="text-xs text-slate-400 italic">Belum Ujian</span>`;
+                }
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50">
@@ -1012,12 +1058,52 @@
                         <td class="p-3 text-center">${nSum}</td>
                         <td class="p-3 text-center">${nEssay}</td>
                         <td class="p-3 text-center font-bold text-indigo-700">${avg}</td>
-                        <td class="p-3 text-center">
-                            <button onclick="resetNilaiSiswa('${siswa.id}')" class="text-rose-600 text-xs px-2 py-1 bg-rose-50 rounded"><i class="fa-solid fa-rotate-left"></i> Reset</button>
-                        </td>
+                        <td class="p-3 text-center">${aksiButtons}</td>
                     </tr>
                 `;
             });
+        }
+
+        // FUNGSI EDIT DAN HAPUS NILAI SPESIFIK GURU
+        function openEditNilaiModal(id, nama, jenis, nilaiSaatIni) {
+            selectedNilaiIdForEdit = id;
+            document.getElementById('modalEditNilaiDetail').innerText = `Siswa: ${nama} (${jenis})`;
+            document.getElementById('inputEditNilaiVal').value = nilaiSaatIni;
+            document.getElementById('editNilaiModal').classList.remove('hidden');
+        }
+
+        function closeEditNilaiModal() {
+            document.getElementById('editNilaiModal').classList.add('hidden');
+            selectedNilaiIdForEdit = null;
+        }
+
+        function simpanEditNilaiModal() {
+            const valInput = document.getElementById('inputEditNilaiVal').value;
+            const val = parseInt(valInput);
+
+            if(valInput === "" || isNaN(val) || val < 0 || val > 100) {
+                alert("Masukkan nilai yang valid antara 0 sampai 100!");
+                return;
+            }
+
+            const entry = state.nilaiList.find(n => n.id === selectedNilaiIdForEdit);
+            if(entry) {
+                entry.nilai = Number(val);
+                entry.status = 'Selesai';
+                saveToStorage();
+                renderRekapGuru();
+                closeEditNilaiModal();
+                alert("Nilai berhasil diperbarui!");
+            }
+        }
+
+        function hapusNilaiSpesifik(nilaiId) {
+            if(confirm("Apakah Anda yakin ingin menghapus nilai kuis ini?\n\nJika dihapus, kuis ini akan muncul kembali di portal siswa untuk dikerjakan ulang.")) {
+                state.nilaiList = state.nilaiList.filter(n => n.id !== nilaiId);
+                saveToStorage();
+                renderRekapGuru();
+                alert("Nilai berhasil dihapus!");
+            }
         }
 
         function exportRekapCSV() {
@@ -1082,7 +1168,7 @@
             }
 
             pendingList.forEach(n => {
-                const siswa = state.siswaList.find(s => s.id === n.siswaId) || { nama: 'Siswa' };
+                const siswa = state.siswaList.find(s => s.id === n.siswaId || s.nisn === n.nisn) || { nama: 'Siswa' };
                 let teksJawaban = '';
                 if(typeof n.jawaban === 'object') {
                     teksJawaban = Object.values(n.jawaban).join(' | ');
@@ -1130,15 +1216,6 @@
                 alert('Nilai koreksi berhasil disimpan dan masuk ke Rekap!');
             } else {
                 alert('Data nilai siswa tidak ditemukan.');
-            }
-        }
-
-        function resetNilaiSiswa(siswaId) {
-            if(confirm('Reset nilai siswa ini?')) {
-                state.nilaiList = state.nilaiList.filter(n => n.siswaId !== siswaId);
-                saveToStorage();
-                renderRekapGuru();
-                updatePendingBadge();
             }
         }
 
@@ -1402,7 +1479,7 @@
             reader.readAsText(file);
         }
 
-        // FUNGSI POULATE SISWA (SUDAH DIPERBAIKI SUPAYA DROPDOWN KELAS DAPAT DIPILIH BEBAS)
+        // FUNGSI POPULATE SISWA
         function populateSiswaDropdown() {
             const kelasSelect = document.getElementById('siswaLoginKelas');
             
@@ -1435,11 +1512,13 @@
             document.getElementById('siswaDashboard').classList.add('hidden');
         }
 
-        // FUNGSI DASHBOARD SISWA (OTOMATIS MENYEMBUNYIKAN KUIS YANG SUDAH SELESAI DIKERJAKAN)
+        // FUNGSI DASHBOARD SISWA (PENGECEKAN KUIS SELESAI DIPERATET & DIPERBAIKI SINKRONISASI)
         function renderSiswaDashboard() {
             const container = document.getElementById('listKuisSiswaContainer');
             container.innerHTML = '';
             let count = 0;
+
+            if(!state.currentSiswa) return;
 
             Object.keys(state.settingsList).forEach(key => {
                 const setting = state.settingsList[key];
@@ -1449,14 +1528,15 @@
                     
                     if(kelas === state.currentSiswa.kelas) {
                         
-                        // Cek apakah siswa ini sudah pernah mengerjakan kuis ini
-                        const sudahDikerjakan = state.nilaiList.some(n => 
-                            (n.siswaId === state.currentSiswa.id || n.siswaId === state.currentSiswa.nisn || n.nisn == state.currentSiswa.nisn) && 
-                            n.bab === bab && 
-                            n.jenis === jenis
-                        );
+                        // Cek ketat apakah siswa ini sudah pernah mengerjakan kuis ini berdasarkan ID atau NISN
+                        const sudahDikerjakan = state.nilaiList.some(n => {
+                            const matchSiswa = (n.siswaId === state.currentSiswa.id || n.siswaId === state.currentSiswa.nisn || n.nisn == state.currentSiswa.nisn);
+                            const matchBab = n.bab && n.bab.trim().toLowerCase() === bab.trim().toLowerCase();
+                            const matchJenis = n.jenis && n.jenis.trim().toLowerCase() === jenis.trim().toLowerCase();
+                            return matchSiswa && matchBab && matchJenis;
+                        });
 
-                        // Tampilkan hanya jika BELUM dikerjakan
+                        // Tampilkan kuis HANYA jika BELUM dikerjakan oleh siswa tersebut
                         if (!sudahDikerjakan) {
                             count++;
                             container.innerHTML += `
@@ -1694,7 +1774,8 @@
             document.getElementById('modalKonfirmasiKirim').classList.add('hidden');
         }
 
-        function eksekusiKirimUjian(isAutoSubmit = false) {
+        // EKSEKUSI KIRIM UJIAN (PASTIKAN PENCATATAN NILAI UNIK & LENGKAP SISWA ID)
+        async function eksekusiKirimUjian(isAutoSubmit = false) {
             document.getElementById('modalKonfirmasiKirim').classList.add('hidden');
             if(state.timerInterval) clearInterval(state.timerInterval);
 
@@ -1809,9 +1890,12 @@
                 jawaban: detailJawaban
             };
 
-            state.nilaiList = state.nilaiList.filter(n => !(n.siswaId === state.currentSiswa.id && n.bab === bab && n.jenis === jenis));
+            // Hapus nilai lama jika ada, lalu masukkan nilai baru
+            state.nilaiList = state.nilaiList.filter(n => !( (n.siswaId === state.currentSiswa.id || n.siswaId === state.currentSiswa.nisn || n.nisn == state.currentSiswa.nisn) && n.bab === bab && n.jenis === jenis));
             state.nilaiList.push(entry);
-            saveToStorage();
+
+            // Simpan perubahan ke Cloud & Local
+            await saveToStorage();
 
             document.getElementById('siswaWorkspace').classList.add('hidden');
 
