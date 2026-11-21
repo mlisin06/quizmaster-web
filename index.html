@@ -677,6 +677,31 @@
             window.addEventListener("blur", handleWindowBlur);
         });
 
+        function getCurrentFilters() {
+            return {
+                tp: document.getElementById('filterTp')?.value || '',
+                sem: document.getElementById('filterSem')?.value || '',
+                kelas: document.getElementById('filterKelas')?.value || '',
+                bab: document.getElementById('filterBab')?.value || '',
+                jenis: document.getElementById('filterJenis')?.value || ''
+            };
+        }
+
+        function applyFilters(filters) {
+            if (!filters) return;
+            const tpEl = document.getElementById('filterTp');
+            const semEl = document.getElementById('filterSem');
+            const kelasEl = document.getElementById('filterKelas');
+            const babEl = document.getElementById('filterBab');
+            const jenisEl = document.getElementById('filterJenis');
+
+            if (filters.tp && tpEl && [...tpEl.options].some(o => o.value === filters.tp)) tpEl.value = filters.tp;
+            if (filters.sem && semEl && [...semEl.options].some(o => o.value === filters.sem)) semEl.value = filters.sem;
+            if (filters.kelas && kelasEl && [...kelasEl.options].some(o => o.value === filters.kelas)) kelasEl.value = filters.kelas;
+            if (filters.bab && babEl && [...babEl.options].some(o => o.value === filters.bab)) babEl.value = filters.bab;
+            if (filters.jenis && jenisEl && [...jenisEl.options].some(o => o.value === filters.jenis)) jenisEl.value = filters.jenis;
+        }
+
         // INISIALISASI DAN SINKRONISASI REALTIME FIREBASE CLOUD
         function initPermanentFirebase() {
             const inputEl = document.getElementById('inputFirebaseConfig');
@@ -691,6 +716,7 @@
 
                     window.FBApp.onSnapshot(window.FBApp.doc(db, "app_data", "master_state"), (docSnap) => {
                         if (docSnap.exists()) {
+                            const activeFilters = getCurrentFilters();
                             const cloudData = docSnap.data();
                             state.master = cloudData.master || state.master;
                             state.soalList = cloudData.soalList || [];
@@ -700,11 +726,12 @@
 
                             localStorage.setItem('app_ujian_dynamic_demo', JSON.stringify(state));
 
-                            renderMasterDropdowns();
+                            renderMasterDropdowns(activeFilters);
                             if(state.role === 'guru') {
                                 renderGuru();
                                 if(state.activeGuruTab === 'tabRekap') renderRekapGuru();
                                 if(state.activeGuruTab === 'tabKoreksi') renderKoreksiGuru();
+                                applyFilters(activeFilters);
                             } else if(state.role === 'siswa') {
                                 populateSiswaDropdown();
                                 if(!document.getElementById('siswaDashboard').classList.contains('hidden')) {
@@ -853,12 +880,15 @@
             }
         }
 
-        function renderMasterDropdowns() {
+        function renderMasterDropdowns(preferredFilters = null) {
+            const current = preferredFilters || getCurrentFilters();
+
             document.getElementById('filterTp').innerHTML = state.master.tp.map(t => `<option value="${t}">${t}</option>`).join('');
             document.getElementById('filterKelas').innerHTML = state.master.kelas.map(k => `<option value="${k}">${k}</option>`).join('');
             document.getElementById('filterBab').innerHTML = state.master.bab.map(b => `<option value="${b}">${b}</option>`).join('');
             document.getElementById('modalKelasSiswa').innerHTML = state.master.kelas.map(k => `<option value="${k}">${k}</option>`).join('');
 
+            applyFilters(current);
             renderMasterModalLists();
         }
 
@@ -1099,7 +1129,7 @@
             selectedNilaiIdForEdit = null;
         }
 
-        function simpanEditNilaiModal() {
+        async function simpanEditNilaiModal() {
             const valInput = document.getElementById('inputEditNilaiVal').value;
             const val = parseInt(valInput);
 
@@ -1108,22 +1138,30 @@
                 return;
             }
 
+            const lockedFilters = getCurrentFilters();
             const entry = state.nilaiList.find(n => n.id === selectedNilaiIdForEdit);
             if(entry) {
                 entry.nilai = Number(val);
                 entry.status = 'Selesai';
-                saveToStorage();
+                await saveToStorage();
+                applyFilters(lockedFilters);
+                renderGuru();
                 renderRekapGuru();
+                applyFilters(lockedFilters);
                 closeEditNilaiModal();
                 alert("Nilai berhasil diperbarui!");
             }
         }
 
-        function hapusNilaiSpesifik(nilaiId) {
+        async function hapusNilaiSpesifik(nilaiId) {
             if(confirm("Apakah Anda yakin ingin menghapus nilai kuis ini?\n\nJika dihapus, kuis ini akan muncul kembali di portal siswa untuk dikerjakan ulang.")) {
+                const lockedFilters = getCurrentFilters();
                 state.nilaiList = state.nilaiList.filter(n => n.id !== nilaiId);
-                saveToStorage();
+                await saveToStorage();
+                applyFilters(lockedFilters);
+                renderGuru();
                 renderRekapGuru();
+                applyFilters(lockedFilters);
                 alert("Nilai berhasil dihapus!");
             }
         }
@@ -1262,7 +1300,7 @@
             updatePendingBadge();
         }
 
-        function simpanKoreksi(id) {
+        async function simpanKoreksi(id) {
             const inputEl = document.getElementById(`input_nilai_${id}`);
             if(!inputEl || inputEl.value === "") {
                 alert('Masukkan angka nilai terlebih dahulu (0-100)!');
@@ -1275,14 +1313,17 @@
                 return; 
             }
 
+            const lockedFilters = getCurrentFilters();
             const entry = state.nilaiList.find(n => n.id === id);
             if(entry) {
                 entry.nilai = Number(val);
                 entry.status = 'Selesai';
-                saveToStorage();
+                await saveToStorage();
+                applyFilters(lockedFilters);
                 renderKoreksiGuru();
                 updatePendingBadge();
                 if(typeof renderRekapGuru === 'function') renderRekapGuru();
+                applyFilters(lockedFilters);
                 alert('Nilai koreksi berhasil disimpan dan masuk ke Rekap!');
             } else {
                 alert('Data nilai siswa tidak ditemukan.');
